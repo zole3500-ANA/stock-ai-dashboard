@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stock AI Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo">🤖</div>
+          <div>
+            <h1>Stock AI Dashboard</h1>
+            <p class="subtitle">ระบบวิเคราะห์หุ้น: ข่าวสด + กราฟ + อินดิเคเตอร์ + ทำนายราคาวันถัดไปแบบมีเหตุผล</p>
+          </div>
+        </div>
+        <span class="badge info" id="updatedBadge">กำลังโหลด...</span>
+      </div>
+
+      <div class="control">
+        <input id="tickerInput" value="BURU" placeholder="พิมพ์ Ticker เช่น BURU, IREN, NVDA, AAPL" />
+        <select id="marketSelect" title="ตลาด">
+          <option value="AMEX">AMEX</option>
+          <option value="NASDAQ">NASDAQ</option>
+          <option value="NYSE">NYSE</option>
+        </select>
+        <button id="analyseBtn">🔄 วิเคราะห์ใหม่</button>
+      </div>
+
+      <div class="cards">
+        <div class="card"><div class="label">Ticker</div><div class="big" id="tickerText">-</div><div class="small" id="companyText">-</div></div>
+        <div class="card"><div class="label">AI Score</div><div class="big" id="scoreText">-</div><div class="small">คะแนนรวมจากหลายมิติ</div></div>
+        <div class="card"><div class="label">Trend Bias</div><div class="big" id="biasText">-</div><div class="small">ทิศทางตามโมเดลระยะสั้น</div></div>
+        <div class="card"><div class="label">Risk Level</div><div class="big" id="riskText">-</div><div class="small">ประเมินจาก ATR และข่าว</div></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-title"><h2>กราฟ TradingView</h2><span class="badge gray" id="symbolBadge">-</span></div>
+        <div class="chartbox"><div id="tv_chart"></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title"><h2>สรุปคำตัดสิน AI</h2><span class="badge neutral" id="decisionBadge">-</span></div>
+        <div class="score">
+          <div class="dial"><span id="dialScore">-</span></div>
+          <div><div class="label">ภาพรวม</div><div class="big" id="summaryHeadline">-</div><div class="small" id="summaryText">-</div></div>
+        </div>
+        <div class="thesis" id="thesisBox">-</div>
+        <div class="levels">
+          <div class="level"><div class="label">แนวรับ</div><strong id="supportText">-</strong></div>
+          <div class="level"><div class="label">แนวต้าน</div><strong id="resistanceText">-</strong></div>
+          <div class="level"><div class="label">Stop-loss</div><strong id="stopText">-</strong></div>
+        </div>
+        <div class="disclaimer">ข้อมูลนี้เป็นเครื่องมือช่วยวิเคราะห์ ไม่ใช่คำแนะนำการลงทุน ควรตรวจสอบข่าวและความเสี่ยงก่อนตัดสินใจทุกครั้ง</div>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:18px;">
+      <div class="panel-title"><h2>🌐 ข่าวสำคัญในสัปดาห์นี้ / ข่าวสำคัญอื่น ๆ</h2><span class="badge info" id="newsStatus">-</span></div>
+      <div class="disclaimer" style="margin-top:0;">ระบบค้นข่าวจาก GDELT / Google News RSS แล้วจัดอันดับจาก impact และ sentiment เช่น earnings, offering, dilution, contract, SEC, delisting, lawsuit, analyst action</div>
+      <div class="tool-links" id="externalSearchLinks"></div>
+      <div class="news-list" id="newsList"><div class="news-item"><div class="loading">กำลังโหลดข่าว...</div></div></div>
+    </section>
+
+    <section class="panel" style="margin-top:18px;">
+      <div class="panel-title"><h2>🔮 ทำนายราคาวันถัดไป พร้อมเหตุผลเชิงตรรก</h2><span class="badge purple" id="predictionStatus">-</span></div>
+      <div class="prediction-main">
+        <div class="prediction-card"><div class="label">ราคาล่าสุดที่ใช้คำนวณ</div><div class="big mono" id="lastPriceText">-</div><div class="small" id="dataQualityText">-</div></div>
+        <div class="prediction-card"><div class="label">คาดการณ์วันถัดไป</div><div class="big mono" id="predictedPriceText">-</div><div class="small" id="predictedReturnText">-</div></div>
+        <div class="prediction-card"><div class="label">กรอบราคาที่เป็นไปได้</div><div class="big mono" id="predictedRangeText">-</div><div class="small" id="confidenceText">-</div></div>
+      </div>
+      <div class="scenario">
+        <div class="box"><span class="badge bullish">Bull Case</span><h3 id="bullCaseTitle">-</h3><p id="bullCaseText" class="small">-</p></div>
+        <div class="box"><span class="badge neutral">Base Case</span><h3 id="baseCaseTitle">-</h3><p id="baseCaseText" class="small">-</p></div>
+        <div class="box"><span class="badge bearish">Bear Case</span><h3 id="bearCaseTitle">-</h3><p id="bearCaseText" class="small">-</p></div>
+      </div>
+      <h3 style="margin-top:18px;">คะแนนปัจจัยที่ใช้ทำนาย</h3>
+      <div class="factor-bars" id="predictionBars"></div>
+      <h3 style="margin-top:18px;">เหตุผลเชิงตรรกแบบละเอียด</h3>
+      <ol class="logic-list" id="predictionLogic"></ol>
+    </section>
+
+    <section class="panel" style="margin-top:18px;">
+      <div class="panel-title"><h2>ตารางวิเคราะห์ 11 มิติ</h2><span class="badge info">AI Multi-Factor</span></div>
+      <table>
+        <thead><tr><th>#</th><th>มิติ</th><th>สถานะ</th><th>สรุปภาษาชาวบ้าน</th></tr></thead>
+        <tbody id="factorBody"></tbody>
+      </table>
+    </section>
+
+    <div class="footer">Stock AI Dashboard • Node.js + TradingView + GDELT/News RSS + Heuristic Prediction</div>
+  </main>
+  <script src="https://s3.tradingview.com/tv.js"></script>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

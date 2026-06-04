@@ -1,0 +1,25 @@
+{
+  "name": "stock-ai-dashboard",
+  "version": "1.0.0",
+  "description": "AI-style stock dashboard with live news, price history, technical factors, and next-day prediction heuristic.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "stocks",
+    "dashboard",
+    "tradingview",
+    "technical-analysis",
+    "news",
+    "prediction"
+  ],
+  "author": "zole3500-ANA + ChatGPT",
+  "license": "MIT"
+}
