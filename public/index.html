@@ -3,15 +3,74 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stock AI Dashboard</title>
+  <title>Stock AI Dashboard — Pixel Agent Edition</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <main class="wrap">
-    <section class="hero">
+  <div class="dashboard-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">📈</div>
+        <div>
+          <div class="sidebar-title">Stock AI</div>
+          <div class="sidebar-subtitle">Pixel Agent v1.9</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#overview" class="nav-link active"><span>🏠</span><div><strong>ภาพรวม</strong><small>Overview</small></div></a>
+        <a href="#command-room" class="nav-link"><span>🕹️</span><div><strong>Command Room</strong><small>Pixel Agent UI</small></div></a>
+        <a href="#market" class="nav-link"><span>📊</span><div><strong>กราฟ + คำตัดสิน</strong><small>Chart & Verdict</small></div></a>
+        <a href="#agents-panel" class="nav-link"><span>🧠</span><div><strong>3 Agent</strong><small>โบ้ • Grok • ป๊อก</small></div></a>
+        <a href="#smartmoney" class="nav-link"><span>🏦</span><div><strong>Smart Money</strong><small>เงินใหญ่</small></div></a>
+        <a href="#social" class="nav-link"><span>📣</span><div><strong>Social Radar</strong><small>กระแสผู้คน</small></div></a>
+        <a href="#news" class="nav-link"><span>📰</span><div><strong>ข่าวสำคัญ</strong><small>Thai News</small></div></a>
+        <a href="#prediction" class="nav-link"><span>🔮</span><div><strong>Prediction</strong><small>วันถัดไป</small></div></a>
+        <a href="#factors" class="nav-link"><span>🧾</span><div><strong>Decision Matrix</strong><small>หลายมิติ</small></div></a>
+      </nav>
+
+      <section class="sidebar-panel">
+        <div class="sidebar-panel-title">Quick Watch</div>
+        <div class="sidebar-quick">
+          <div class="quick-card">
+            <div class="quick-label">Ticker</div>
+            <div class="quick-value" id="sideTicker">-</div>
+            <div class="quick-sub" id="sideCompany">-</div>
+          </div>
+          <div class="quick-row">
+            <div class="quick-mini"><span>AI Score</span><strong id="sideScore">-</strong></div>
+            <div class="quick-mini"><span>Bias</span><strong id="sideBias">-</strong></div>
+          </div>
+          <div class="quick-row">
+            <div class="quick-mini"><span>Risk</span><strong id="sideRisk">-</strong></div>
+            <div class="quick-mini"><span>Smart</span><strong id="sideSmart">-</strong></div>
+          </div>
+          <div class="quick-row">
+            <div class="quick-mini wide"><span>Social</span><strong id="sideSocial">-</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sidebar-panel">
+        <div class="sidebar-panel-title">Agent Lineup</div>
+        <div id="sidebarAgentPills" class="sidebar-agent-pills">
+          <div class="side-pill loading">กำลังโหลด agent...</div>
+        </div>
+      </section>
+
+      <section class="sidebar-panel">
+        <div class="sidebar-panel-title">System Status</div>
+        <div class="sidebar-status">
+          <div class="status-chip"><span class="dot live"></span><span id="sideUpdated">กำลังเชื่อมต่อข้อมูล...</span></div>
+          <div class="status-note">โหมดภาษาไทย • ข่าวแปลไทย • Social + Smart Money + Decision Matrix</div>
+        </div>
+      </section>
+    </aside>
+    <main class="wrap content-area">
+    <section class="hero" id="overview">
       <div class="topbar">
         <div class="brand">
           <div class="logo">🤖</div>
@@ -41,7 +100,7 @@
       </div>
     </section>
 
-    <section class="grid">
+    <section class="grid" id="market">
       <div class="panel">
         <div class="panel-title"><h2>กราฟ TradingView</h2><span class="badge gray" id="symbolBadge">-</span></div>
         <div class="chartbox"><div id="tv_chart"></div></div>
@@ -65,7 +124,32 @@
 
 
 
-    <section class="panel" style="margin-top:18px;">
+    <section class="panel pixel-room-section" style="margin-top:18px;" id="command-room">
+      <div class="panel-title"><h2>🕹️ Pixel Agent Command Room</h2><span class="badge info" id="roomOverallStatus">กำลังวิเคราะห์...</span></div>
+      <div class="disclaimer" style="margin-top:0;">อินเทอร์เฟซนี้ได้แรงบันดาลใจจากแนวคิด multi-agent แบบ pixel office และปรับให้เหมาะกับระบบวิเคราะห์หุ้น: เห็นบทบาทของ agent, สถานะงาน, สัญญาณที่ต้องจับตา และลำดับการตัดสินใจในห้องวิเคราะห์เดียว</div>
+      <div class="pixel-room-layout">
+        <aside class="pixel-roster">
+          <h3>ทีมปฏิบัติการ</h3>
+          <div id="agentRoster" class="pixel-roster-list">
+            <div class="pixel-roster-card"><div class="loading">กำลังเรียกทีม Agent...</div></div>
+          </div>
+          <div class="thesis" id="roomNarrative">กำลังสรุปภาพรวมจากทุก agent...</div>
+        </aside>
+        <div class="pixel-room-main">
+          <div class="pixel-room-grid" id="agentCommandRoom">
+            <div class="pixel-station"><div class="loading">กำลังจัดห้องปฏิบัติการวิเคราะห์...</div></div>
+          </div>
+          <div class="pixel-timeline-wrap">
+            <h3>ลำดับการทำงาน</h3>
+            <div id="roomTimeline" class="pixel-timeline">
+              <div class="loading">กำลังสร้าง workflow...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:18px;" id="agents-panel">
       <div class="panel-title"><h2>🧠 วิเคราะห์ละเอียดแบบ 3 Agent</h2><span class="badge purple">โบ้ + Grok + ป๊อก</span></div>
       <div class="disclaimer" style="margin-top:0;">ผลวิเคราะห์ส่วนนี้เป็นภาษาไทยทั้งหมด แยกมุมมองเป็น โบ้ (พื้นฐาน/ข่าว), Grok (สายซิ่ง/โมเมนตัม), และป๊อก (สายเทคนิค/จุดเข้าออก)</div>
       <div class="agents-grid" id="agentsGrid">
@@ -75,7 +159,7 @@
 
 
 
-    <section class="panel" style="margin-top:18px;">
+    <section class="panel" style="margin-top:18px;" id="smartmoney">
       <div class="panel-title"><h2>🏦 วิเคราะห์ Smart Money / เงินใหญ่</h2><span class="badge purple" id="smartMoneyStatus">-</span></div>
       <div class="disclaimer" style="margin-top:0;">วิเคราะห์ร่องรอยเงินใหญ่จาก OHLCV และอินดิเคเตอร์สำคัญ เช่น OBV, CMF, MFI, CVD Proxy, VWAP, Up/Down Volume, Volume Profile Proxy, Accumulation/Distribution, Unusual Volume, Absorption และ Breakout Quality</div>
       <div class="smart-summary-grid">
@@ -93,7 +177,7 @@
     </section>
 
 
-    <section class="panel" style="margin-top:18px;">
+    <section class="panel" style="margin-top:18px;" id="social">
       <div class="panel-title"><h2>📣 วิเคราะห์การพูดคุยใน Social Media</h2><span class="badge info" id="socialStatus">-</span></div>
       <div class="disclaimer" style="margin-top:0;">วิเคราะห์กระแสจาก Facebook, X, Reddit, Stocktwits และแหล่งอื่นที่สำคัญ เช่น YouTube, Google Trends และเว็บบอร์ด โดยแสดงผลเป็นภาษาไทย พร้อมประเมิน sentiment, ความร้อนแรง, และความเสี่ยงการปั่นกระแส</div>
       <div class="social-summary-grid">
@@ -108,14 +192,14 @@
         <div class="social-box"><h3>โอกาส / สัญญาณบวก</h3><ul id="socialOpportunities"></ul></div>
       </div>
     </section>
-    <section class="panel" style="margin-top:18px;">
+    <section class="panel" style="margin-top:18px;" id="news">
       <div class="panel-title"><h2>🌐 ข่าวสำคัญในสัปดาห์นี้ / ข่าวสำคัญอื่น ๆ (สรุปและแปลไทยทั้งหมด)</h2><span class="badge info" id="newsStatus">-</span></div>
       <div class="disclaimer" style="margin-top:0;">ระบบค้นข่าวจาก GDELT / Google News RSS แล้วแปลหัวข่าว/สรุปข่าวเป็นไทย พร้อมจัดอันดับจากผลกระทบและ sentiment เช่น ผลประกอบการ เพิ่มทุน dilution สัญญา SEC delisting คดีความ และนักวิเคราะห์</div>
       <div class="tool-links" id="externalSearchLinks"></div>
       <div class="news-list" id="newsList"><div class="news-item"><div class="loading">กำลังโหลดข่าว...</div></div></div>
     </section>
 
-    <section class="panel" style="margin-top:18px;">
+    <section class="panel" style="margin-top:18px;" id="prediction">
       <div class="panel-title"><h2>🔮 ทำนายราคาวันถัดไป พร้อมเหตุผลเชิงตรรก</h2><span class="badge purple" id="predictionStatus">-</span></div>
       <div class="prediction-main">
         <div class="prediction-card"><div class="label">ราคาล่าสุดที่ใช้คำนวณ</div><div class="big mono" id="lastPriceText">-</div><div class="small" id="dataQualityText">-</div></div>
@@ -133,7 +217,7 @@
       <ol class="logic-list" id="predictionLogic"></ol>
     </section>
 
-    <section class="panel" style="margin-top:18px;">
+    <section class="panel" style="margin-top:18px;" id="factors">
       <div class="panel-title"><h2>ตารางวิเคราะห์หลายมิติ</h2><span class="badge info">Decision Matrix</span></div>
       <div class="disclaimer" style="margin-top:0;">ตารางนี้เพิ่มคะแนนรายมิติ น้ำหนัก ความมั่นใจ ผลต่อราคา ระยะเวลา สิ่งที่ต้องจับตา และ Action เพื่อให้ใช้เป็นระบบช่วยตัดสินใจ ไม่ใช่แค่ตารางสรุปข้อมูล</div>
       <div class="table-scroll">
@@ -160,6 +244,7 @@
 
     <div class="footer">Stock AI Dashboard • วิเคราะห์ภาษาไทย + ข่าวแปลไทย + Social Media + 3 Agent + ทำนายราคาวันถัดไป</div>
   </main>
+  </div>
   <script src="https://s3.tradingview.com/tv.js"></script>
   <script type="module" src="/app.js"></script>
 </body>

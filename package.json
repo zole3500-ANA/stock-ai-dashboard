@@ -1,7 +1,7 @@
 {
   "name": "stock-ai-dashboard",
-  "version": "1.7.0",
-  "description": "Thai-first stock dashboard with complete decision matrix, score interpretation, smart money, Thai news, social media intelligence, 3-agent analysis, and next-day prediction heuristic.",
+  "version": "1.9.0",
+  "description": "Stock dashboard with Thai AI agents, full sidebar mockup, real pixel avatars, decision matrix, smart money, social media intelligence, and next-day prediction.",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -35,7 +35,15 @@
     "dilution-risk",
     "sec-filings",
     "liquidity-risk",
-    "short-squeeze"
+    "short-squeeze",
+    "pixel-agent-ui",
+    "agent-command-room",
+    "multi-agent-dashboard",
+    "thai-stock-dashboard",
+    "sidebar-ui",
+    "pixel-avatar",
+    "pixel-agents-inspired",
+    "agent-sidebar"
   ],
   "author": "zole3500-ANA + ChatGPT",
   "license": "MIT"

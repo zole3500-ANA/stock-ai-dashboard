@@ -89,6 +89,8 @@ function render(data) {
   $('resistanceText').title = summary.actionPlan.resistanceSource || 'คำนวณจากข้อมูลราคา';
   $('stopText').title = summary.actionPlan.stopLossSource || 'คำนวณจากข้อมูลราคา';
   $('symbolBadge').textContent = data.tradingViewSymbol;
+  renderSidebar(data);
+  renderAgentRoom(data);
 
   renderTradingView(data.tradingViewSymbol);
   renderLinks(data.externalLinks);
@@ -99,6 +101,325 @@ function render(data) {
   renderPrediction(prediction, data.dataSources);
   renderFactors(data.factors);
 }
+
+
+
+function renderSidebar(data) {
+  const profile = data.profile || {};
+  const prediction = data.prediction || {};
+  const smart = data.smartMoney || {};
+  const socialSummary = data.social?.summary || {};
+  const updated = data.generatedAt ? new Date(data.generatedAt).toLocaleString('th-TH') : 'ล่าสุด';
+  if ($('sideTicker')) $('sideTicker').textContent = data.symbol || '-';
+  if ($('sideCompany')) $('sideCompany').textContent = profile.company || '-';
+  if ($('sideScore')) $('sideScore').textContent = `${profile.score ?? '-'} / 100`;
+  if ($('sideBias')) $('sideBias').textContent = prediction.verdict || '-';
+  if ($('sideRisk')) $('sideRisk').textContent = data.summary?.risk || '-';
+  if ($('sideSmart')) $('sideSmart').textContent = `${smart.score ?? '-'} / 100`;
+  if ($('sideSocial')) $('sideSocial').textContent = socialSummary.dominantTone || socialSummary.buzzLevel || '-';
+  if ($('sideUpdated')) $('sideUpdated').textContent = `อัปเดต ${updated}`;
+
+  const pills = $('sidebarAgentPills');
+  if (pills) {
+    const roster = buildSidebarRoster(data);
+    pills.innerHTML = roster.map(item => `
+      <div class="side-pill tone-${item.tone}">
+        <div class="side-pill-avatar">${pixelAvatarSvg(item.avatar, 'xs')}</div>
+        <div class="side-pill-text">
+          <strong>${escapeHtml(item.name)}</strong>
+          <span>${escapeHtml(item.status)}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+function buildSidebarRoster(data) {
+  const agents = data.agents || [];
+  const smart = data.smartMoney || {};
+  const socialSummary = data.social?.summary || {};
+  const smartTone = scoreTone(Number(smart.score || 0));
+  const socialScore = clampNum(Math.round(50 + Number(socialSummary.sentimentScore || 0) * 50 - Number(socialSummary.hypeRisk || 0) * 0.18), 0, 100);
+  return [
+    { name: 'โบ้', avatar: 'bo', status: agents[0]?.verdict || 'พื้นฐาน', tone: scoreTone(Number(agents[0]?.score || 0)) },
+    { name: 'Grok', avatar: 'grok', status: agents[1]?.verdict || 'โมเมนตัม', tone: scoreTone(Number(agents[1]?.score || 0)) },
+    { name: 'ป๊อก', avatar: 'pok', status: agents[2]?.verdict || 'เทคนิค', tone: scoreTone(Number(agents[2]?.score || 0)) },
+    { name: 'Smart', avatar: 'smart', status: smart.action || smart.verdict || 'เงินใหญ่', tone: smartTone },
+    { name: 'Social', avatar: 'social', status: socialSummary.dominantTone || 'กระแสตลาด', tone: scoreTone(socialScore) },
+    { name: 'Data', avatar: 'data', status: data.summary?.headline || 'ตัดสินใจรวม', tone: scoreTone(Number(data.profile?.score || 0)) }
+  ];
+}
+
+function avatarTypeFromId(id) {
+  const raw = String(id || '').toLowerCase();
+  if (raw.includes('bo')) return 'bo';
+  if (raw.includes('grok')) return 'grok';
+  if (raw.includes('pok')) return 'pok';
+  if (raw.includes('smart')) return 'smart';
+  if (raw.includes('social')) return 'social';
+  return 'data';
+}
+
+function pixelAvatarSvg(type = 'bo', size = 'md') {
+  const maps = {
+    bo: {
+      skin:'#f0c29b', hair:'#7a4a24', eye:'#111827', shirt:'#4da6ff', accent:'#b4e0ff',
+      grid:['000111110000','001122221100','012222222210','012322223210','123222222321','123402204321','123222222321','012233332210','001455554100','014444444410','144464446441','100000000001']
+    },
+    grok: {
+      skin:'#d9a97c', hair:'#ff5263', eye:'#111827', shirt:'#ff8a3d', accent:'#ffd0b0',
+      grid:['000111110000','001222222100','012222222210','012233332210','123222222321','123402204321','123222222321','012255552210','001366663100','013333333310','133363336331','100000000001']
+    },
+    pok: {
+      skin:'#f4d3b0', hair:'#35d07f', eye:'#0b1320', shirt:'#25d8ff', accent:'#c9fff0',
+      grid:['000111110000','001222222100','012222222210','012233332210','123222222321','123402204321','123222222321','012255552210','001366663100','013333333310','133363336331','100000000001']
+    },
+    smart: {
+      skin:'#e9c7a8', hair:'#a879ff', eye:'#111827', shirt:'#7c5cff', accent:'#e4d8ff',
+      grid:['000111110000','001222222100','012222222210','012233332210','123222222321','123402204321','123222222321','012255552210','001366663100','013333333310','133363336331','100000000001']
+    },
+    social: {
+      skin:'#efc29c', hair:'#ffc857', eye:'#111827', shirt:'#ff5263', accent:'#fff1bf',
+      grid:['000111110000','001222222100','012222222210','012233332210','123222222321','123402204321','123222222321','012255552210','001366663100','013333333310','133363336331','100000000001']
+    },
+    data: {
+      skin:'#d6d9e8', hair:'#4b5770', eye:'#111827', shirt:'#8897b3', accent:'#d9e8ff',
+      grid:['000111110000','001222222100','012222222210','012233332210','123222222321','123402204321','123222222321','012255552210','001366663100','013333333310','133363336331','100000000001']
+    }
+  };
+  const cfg = maps[type] || maps.bo;
+  const cell = size === 'xs' ? 5 : size === 'sm' ? 6 : size === 'lg' ? 9 : 7;
+  const grid = cfg.grid;
+  let rects = '';
+  grid.forEach((row, y) => {
+    [...row].forEach((v, x) => {
+      const color = ({'1':cfg.hair,'2':cfg.skin,'3':cfg.eye,'4':cfg.accent,'5':cfg.shirt,'6':cfg.accent})[v];
+      if (color) rects += `<rect x="${x*cell}" y="${y*cell}" width="${cell}" height="${cell}" fill="${color}"/>`;
+    });
+  });
+  const w = grid[0].length * cell;
+  const h = grid.length * cell;
+  return `<svg class="pixel-svg-avatar ${type}" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">${rects}</svg>`;
+}
+
+
+function renderAgentRoom(data) {
+  const rosterEl = $('agentRoster');
+  const roomEl = $('agentCommandRoom');
+  const timelineEl = $('roomTimeline');
+  const narrativeEl = $('roomNarrative');
+  const overallEl = $('roomOverallStatus');
+  if (!rosterEl || !roomEl || !timelineEl || !narrativeEl || !overallEl) return;
+
+  const agents = data.agents || [];
+  const prediction = data.prediction || {};
+  const tech = prediction.technical || {};
+  const socialSummary = data.social?.summary || {};
+  const smart = data.smartMoney || {};
+  const factors = data.factors || [];
+  const dataQuality = factors.find(f => String(f.dimension || '').toLowerCase().includes('data quality'));
+  const dilutionRisk = factors.find(f => String(f.dimension || '').toLowerCase().includes('dilution'));
+  const rrFactor = factors.find(f => String(f.dimension || '').toLowerCase().includes('risk/reward'));
+  const worstFactors = [...factors].sort((a, b) => Number(a.score || 0) - Number(b.score || 0)).slice(0, 3);
+
+  const bo = agents[0] || {};
+  const grok = agents[1] || {};
+  const pok = agents[2] || {};
+
+  const socialDerivedScore = clampNum(Math.round(50 + Number(socialSummary.sentimentScore || 0) * 50 - Number(socialSummary.hypeRisk || 0) * 0.18), 0, 100);
+  const roster = [
+    makeRosterAgent('BO', 'โบ้', 'สายพื้นฐาน', Number(bo.score || 0), bo.verdict || 'กำลังประเมินพื้นฐาน', bo.role || 'พื้นฐาน + ข่าว + ความเสี่ยง'),
+    makeRosterAgent('GK', 'Grok', 'สายซิ่ง', Number(grok.score || 0), grok.verdict || 'กำลังสแกนโมเมนตัม', grok.role || 'โมเมนตัม + Volume'),
+    makeRosterAgent('PK', 'ป๊อก', 'สายเทคนิค', Number(pok.score || 0), pok.verdict || 'กำลังคำนวณจุดเข้าออก', pok.role || 'แนวรับ แนวต้าน Stop-loss'),
+    makeRosterAgent('SM', 'มาร์ค', 'Smart Money', Number(smart.score || 0), smart.action || 'กำลังอ่านเงินใหญ่', 'OBV / CMF / MFI / CVD proxy'),
+    makeRosterAgent('SO', 'โซเชียล', 'Social Radar', socialDerivedScore, socialSummary.thaiSummary || socialSummary.dominantTone || 'กำลังอ่านกระแส', 'X / Reddit / Facebook / Stocktwits'),
+    makeRosterAgent('DT', 'ดาต้า', 'Data Ops', Number(dataQuality?.score || prediction.confidence || 50), dataQuality?.action || 'ทวนสอบคุณภาพข้อมูล', 'ราคา / ข่าว / API / ความมั่นใจ')
+  ];
+
+  rosterEl.innerHTML = roster.map(item => `
+    <div class="pixel-roster-card tone-${item.tone}">
+      <div class="pixel-avatar-wrap">${pixelAvatarSvg(item.avatar, 'sm')}</div>
+      <div class="pixel-roster-text">
+        <div class="pixel-roster-name">${escapeHtml(item.name)} <span>${escapeHtml(item.track)}</span></div>
+        <div class="pixel-roster-role">${escapeHtml(item.role)}</div>
+        <div class="pixel-roster-meta">
+          <span class="badge ${item.tone}">${escapeHtml(item.status)}</span>
+          <span class="pixel-mini-score">${item.score}/100</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  const stations = [
+    {
+      code: 'BO',
+      title: 'โต๊ะพื้นฐาน + ข่าว',
+      avatar: 'bo',
+      owner: 'โบ้',
+      tone: scoreTone(Number(bo.score || 0)),
+      status: bo.verdict || 'ทวนสอบข่าว/พื้นฐาน',
+      task: bo.summary || 'กำลังประเมินคุณภาพธุรกิจ ข่าวสำคัญ และความเสี่ยงโครงสร้าง',
+      bubble: dilutionRisk?.score && dilutionRisk.score < 45 ? '⚠ พบความเสี่ยง dilution ต้องเฝ้าระวังเป็นพิเศษ' : '📰 เฝ้าดูข่าว contract, earnings และ corporate action',
+      metrics: [
+        `พื้นฐาน ${Number(bo.score || 0)}/100`,
+        `ข่าวรวม ${prediction.newsSentiment ?? 0}`,
+        `AI Score ${data.profile?.score ?? '-'}`
+      ]
+    },
+    {
+      code: 'GK',
+      title: 'โต๊ะแรงซิ่ง / โมเมนตัม',
+      avatar: 'grok',
+      owner: 'Grok',
+      tone: scoreTone(Number(grok.score || 0)),
+      status: grok.verdict || 'สแกนโมเมนตัม',
+      task: grok.summary || 'กำลังสแกนความแรงของราคา, volume spike และ volatility',
+      bubble: (tech.volRatio || 0) > 1.4 ? '🚀 Volume เริ่มเด่น ต้องดูว่าราคาผ่านแนวต้านพร้อมแรงซื้อจริงไหม' : '⏳ Volume ยังไม่ยืนยันมากพอ ระวัง false breakout',
+      metrics: [
+        `Volume ${Number(tech.volRatio || 0).toFixed(2)}x`,
+        `ATR ${(Number(tech.atrPct || 0) * 100).toFixed(2)}%`,
+        `1D ${percent(Number(tech.dayChange || 0))}`
+      ]
+    },
+    {
+      code: 'PK',
+      title: 'โต๊ะเทคนิค / แผนเทรด',
+      avatar: 'pok',
+      owner: 'ป๊อก',
+      tone: scoreTone(Number(pok.score || 0)),
+      status: pok.verdict || 'วางจุดเข้าออก',
+      task: pok.summary || 'กำลังประเมิน MA, VWAP, RSI, MACD และจุดเข้าออก',
+      bubble: `🎯 Follow เหนือ ${money(prediction.levels?.resistance)} | คุมเสี่ยงใต้ ${money(prediction.levels?.stopLoss)}`,
+      metrics: [
+        `RSI ${Number(tech.rsi14 || 0).toFixed(1)}`,
+        `VWAP ${money(tech.vwap20)}`,
+        `Stop ${money(prediction.levels?.stopLoss)}`
+      ]
+    },
+    {
+      code: 'SM',
+      title: 'โต๊ะ Smart Money',
+      avatar: 'smart',
+      owner: 'มาร์ค',
+      tone: scoreTone(Number(smart.score || 0)),
+      status: smart.action || smart.verdict || 'อ่านรอยเท้าเงินใหญ่',
+      task: smart.summary || smart.overview || 'กำลังอ่านการสะสม/กระจายจาก OBV, CMF, MFI และ CVD proxy',
+      bubble: `💼 ${smart.interpretation?.meaning || 'เช็กว่าเงินใหญ่กำลังสะสมหรือกระจายหุ้น'}`,
+      metrics: [
+        `SM ${Number(smart.score || 0)}/100`,
+        `OBV ${metricValue(smart, 'OBV')}`,
+        `CMF ${metricValue(smart, 'CMF20')}`
+      ]
+    },
+    {
+      code: 'SO',
+      title: 'โต๊ะ Social Radar',
+      avatar: 'social',
+      owner: 'โซเชียล',
+      tone: scoreTone(socialDerivedScore),
+      status: socialSummary.thaiSummary || socialSummary.dominantTone || 'อ่านกระแสผู้คน',
+      task: `กำลังประมวลผล Facebook, X, Reddit, Stocktwits, YouTube และแหล่งกระแสอื่น ๆ`,
+      bubble: Number(socialSummary.hypeRisk || 0) >= 65 ? '📣 กระแสแรงแต่เสี่ยงปั่น ห้ามใช้ Social เป็นเหตุผลหลักในการเข้า' : '🧭 ใช้ Social เป็นตัวเสริม ตรวจที่มาของกระแสทุกครั้ง',
+      metrics: [
+        `Heat ${Number(socialSummary.heatScore || 0)}/100`,
+        `Hype ${Number(socialSummary.hypeRisk || 0)}/100`,
+        `Conf ${Number(socialSummary.confidence || 0)}%`
+      ]
+    },
+    {
+      code: 'DT',
+      title: 'โต๊ะ Decision Matrix',
+      avatar: 'data',
+      owner: 'ดาต้า',
+      tone: scoreTone(Number(dataQuality?.score || prediction.confidence || 50)),
+      status: dataQuality?.status || 'ทวนสอบข้อมูล',
+      task: `สรุปจากตารางหลายมิติ ${factors.length} มิติ เพื่อสร้างแผนตัดสินใจที่ใช้งานได้จริง`,
+      bubble: worstFactors.length ? `🧠 จุดอ่อนหลักวันนี้: ${worstFactors.map(x => x.dimension).join(' / ')}` : '🧠 กำลังรวบรวมคะแนนรายมิติ',
+      metrics: [
+        `Data ${Number(dataQuality?.score || prediction.confidence || 50)}/100`,
+        `R/R ${rrFactor?.scoreText || '-'}`,
+        `มั่นใจ ${prediction.confidence || '-'}%`
+      ]
+    }
+  ];
+
+  roomEl.innerHTML = stations.map(st => `
+    <article class="pixel-station tone-${st.tone}">
+      <div class="pixel-station-top">
+        <div class="pixel-avatar-wrap large">${pixelAvatarSvg(st.avatar || 'data', 'md')}</div>
+        <div>
+          <div class="pixel-station-title">${escapeHtml(st.title)}</div>
+          <div class="pixel-station-owner">ผู้รับผิดชอบ: ${escapeHtml(st.owner)}</div>
+        </div>
+        <span class="badge ${st.tone}">${escapeHtml(st.status)}</span>
+      </div>
+      <div class="pixel-task">${escapeHtml(st.task)}</div>
+      <div class="pixel-bubble">${escapeHtml(st.bubble)}</div>
+      <div class="pixel-metrics">
+        ${st.metrics.map(m => `<span>${escapeHtml(m)}</span>`).join('')}
+      </div>
+    </article>
+  `).join('');
+
+  const roomTone = scoreTone(Number(data.profile?.score || 0) + (prediction.direction === 'ขึ้น' ? 5 : prediction.direction === 'ลง' ? -5 : 0));
+  setBadge(overallEl, `${data.symbol} • ${summaryLabel(data.summary)} • ${prediction.verdict}`, roomTone);
+
+  narrativeEl.innerHTML = `<strong>ภาพรวม:</strong> ห้องวิเคราะห์ของ ${escapeHtml(data.symbol)} กำลังชี้ว่า “${escapeHtml(prediction.verdict || '-') }” โดยโบ้จับตาข่าวและความเสี่ยงพื้นฐาน, Grok จับตาโมเมนตัมและแรงเก็งกำไร, ป๊อกทวนสอบจุดเข้า/ออก, โต๊ะ Smart Money ตรวจแรงสะสม, Social Radar กรองกระแส และดาต้าสรุปทั้งหมดลงใน Decision Matrix เพื่อช่วยตัดสินใจ`;
+
+  const steps = [
+    { label: '1) ราคา/Volume', detail: `OHLCV ${data.dataSources?.price || '-'}`, tone: 'neutral' },
+    { label: '2) ข่าว', detail: `${(data.news || []).length} ข่าว • ${data.dataSources?.news || '-'}`, tone: scoreTone(Math.round(50 + Number(prediction.newsSentiment || 0) * 50)) },
+    { label: '3) Social', detail: `${socialSummary.dominantTone || 'ข้อมูลจำกัด'} • Heat ${Number(socialSummary.heatScore || 0)}`, tone: scoreTone(socialDerivedScore) },
+    { label: '4) Smart Money', detail: `${Number(smart.score || 0)}/100`, tone: scoreTone(Number(smart.score || 0)) },
+    { label: '5) คำตัดสิน', detail: `${prediction.verdict || '-'} • มั่นใจ ${prediction.confidence || '-'}%`, tone: scoreTone(Number(data.profile?.score || 0)) }
+  ];
+
+  timelineEl.innerHTML = steps.map(step => `
+    <div class="pixel-step tone-${step.tone}">
+      <div class="pixel-step-label">${escapeHtml(step.label)}</div>
+      <div class="pixel-step-detail">${escapeHtml(step.detail)}</div>
+    </div>
+  `).join('');
+}
+
+function makeRosterAgent(code, name, track, score, status, role) {
+  const cleanScore = clampNum(Number(score || 0), 0, 100);
+  return {
+    code,
+    name,
+    track,
+    score: cleanScore,
+    status,
+    role,
+    avatar: avatarTypeFromId(name || code),
+    tone: scoreTone(cleanScore)
+  };
+}
+
+function metricValue(smart, name) {
+  const arr = smart?.indicators || [];
+  const found = arr.find(x => String(x.name || '').toUpperCase() === String(name).toUpperCase());
+  if (!found) return '-';
+  const n = Number(found.value);
+  return Number.isFinite(n) ? n.toFixed(2) : (found.value ?? '-');
+}
+
+function clampNum(v, min, max) {
+  return Math.max(min, Math.min(max, Number(v) || 0));
+}
+
+function scoreTone(score) {
+  const s = Number(score) || 0;
+  if (s >= 70) return 'bullish';
+  if (s >= 40) return 'neutral';
+  return 'bearish';
+}
+
+function summaryLabel(summary) {
+  if (!summary) return '-';
+  return summary.label || summary.headline || summary.risk || '-';
+}
+
 
 function renderTradingView(symbol) {
   const container = $('tv_chart');
@@ -320,6 +641,14 @@ function renderFactors(factors) {
     </tr>`;
   }).join('');
 }
+
+
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('.nav-link');
+  if (!link) return;
+  document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+  link.classList.add('active');
+});
 
 $('analyseBtn').addEventListener('click', analyze);
 $('tickerInput').addEventListener('keydown', e => { if (e.key === 'Enter') analyze(); });

@@ -76,6 +76,51 @@
 - Data Quality
 
 
+
+## อัปเดต v1.8: Pixel Agent Command Room
+
+เวอร์ชันนี้เพิ่ม UI ใหม่ที่ได้แรงบันดาลใจจากแนวคิด **Pixel Agents** โดยไม่คัดลอก asset ตรง ๆ แต่ดัดแปลงเป็น **ห้องปฏิบัติการวิเคราะห์หุ้นแบบ multi-agent** สำหรับโปรเจกต์นี้โดยเฉพาะ
+
+สิ่งที่เพิ่ม:
+
+- เมนู **Pixel Agent Command Room**
+- Agent roster แสดงบทบาทของ โบ้, Grok, ป๊อก, Smart Money, Social Radar และ Data Ops
+- สถานีปฏิบัติการ (stations) สำหรับข่าว/พื้นฐาน, โมเมนตัม, เทคนิค, Smart Money, Social และ Decision Matrix
+- workflow timeline แสดงลำดับการทำงานตั้งแต่ ราคา/Volume → ข่าว → Social → Smart Money → คำตัดสิน
+- UI โทน dark cyber + pixel office เพื่อให้ “เห็นการทำงานของ agent” ไม่ใช่แค่อ่านผลลัพธ์ปลายทาง
+
+แนวคิดคือทำให้ผู้ใช้รู้ว่า “แต่ละ agent กำลังทำอะไร อยู่ในสถานะไหน และกำลังจับตาประเด็นใด” ช่วยให้ dashboard อ่านง่ายขึ้นและน่าใช้งานมากขึ้นโดยยังคงข้อมูลเชิงวิเคราะห์เดิมทั้งหมด
+
+
+
+## อัปเดต v1.9: Full Sidebar Mockup + Real Pixel Avatars
+
+เวอร์ชันนี้ยกระดับ UI จาก v1.8 โดยเพิ่ม:
+
+- **Sidebar แบบเต็มรูปแบบ**  
+  มีเมนูนำทางไปยัง Overview, Command Room, กราฟ/คำตัดสิน, 3 Agent, Smart Money, Social, ข่าว, Prediction และ Decision Matrix
+
+- **Quick Watch Panel**  
+  แสดง Ticker, Company, AI Score, Bias, Risk, Smart Money และ Social tone แบบสรุปเร็ว
+
+- **Agent Lineup ใน Sidebar**  
+  แสดงสถานะย่อของแต่ละ agent แบบพร้อมใช้งาน
+
+- **Pixel Avatar จริงสำหรับแต่ละ agent**  
+  เปลี่ยนจาก placeholder เป็น pixel-art avatar แบบ SVG สำหรับ:
+  - โบ้
+  - Grok
+  - ป๊อก
+  - Smart Money
+  - Social Radar
+  - Data Ops
+
+- **ปรับ Agent Cards และ Command Room ให้สวยขึ้น**  
+  ใช้ avatar ใหม่ในห้องปฏิบัติการและการ์ดวิเคราะห์ 3 Agent ทำให้ UI มีเอกลักษณ์มากขึ้น
+
+แรงบันดาลใจมาจากแนวคิด Pixel Agents แต่ปรับให้เข้ากับ workflow การวิเคราะห์หุ้นในโปรเจกต์นี้โดยเฉพาะ
+
+
 ## วิธีรันในเครื่อง
 
 ```bash
