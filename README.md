@@ -210,6 +210,179 @@
 9. Social Media
 
 
+
+## อัปเดต v2.0.4: บังคับลำดับหน้า + Cache Busting
+
+เวอร์ชันนี้แก้กรณี deploy แล้วผู้ใช้ยังเห็นลำดับเดิม โดยเพิ่ม:
+
+- บังคับลำดับ section ใหม่ใน `index.html`
+- ปรับ sidebar ให้เรียงตามลำดับใหม่
+- เพิ่ม `?v=2.0.4` ให้ `styles.css` และ `app.js` เพื่อบังคับ browser โหลดไฟล์ใหม่
+- เพิ่มป้ายแสดง `v2.0.4` ด้านบนหน้าเว็บ เพื่อใช้ตรวจสอบว่าเว็บโหลดเวอร์ชันล่าสุดจริง
+
+ลำดับใหม่:
+
+1. Overview
+2. กราฟ + คำตัดสิน
+3. Pixel Agent Command Room
+4. Prediction
+5. วิเคราะห์ละเอียดแบบ 3 Agent
+6. ตารางวิเคราะห์หลายมิติ / Decision Matrix
+7. Smart Money
+8. ข่าว
+9. Social Media
+
+
+
+## อัปเดต v2.0.5: ปรับสัญลักษณ์สถานะใน Decision Matrix
+
+เวอร์ชันนี้เปลี่ยนสัญลักษณ์ในคอลัมน์ **สถานะ** ของตารางวิเคราะห์หลายมิติให้ดูสวยขึ้น:
+
+- `กลางบวก` เปลี่ยนจาก 🟢 เป็น 📈
+- `กลาง / รอดู` เปลี่ยนจาก 🟡 เป็น ⏳
+
+ความหมายใหม่:
+
+- 🚀 = แข็งแรงมาก
+- ✅ = แข็งแรง
+- 📈 = กลางบวก
+- ⏳ = กลาง / รอดู
+- ⚠️ = อ่อน / ควรระวัง
+- 🛑 = อ่อนมาก / เสี่ยงสูง
+
+เพิ่ม cache busting เป็น `?v=2.0.5` เพื่อให้ browser โหลดไฟล์ใหม่แน่นอน
+
+
+
+## อัปเดต v2.0.6: ปรับสัญลักษณ์กลางบวกให้เรียบขึ้น
+
+เวอร์ชันนี้เปลี่ยนสัญลักษณ์ในคอลัมน์ **สถานะ** ของตารางวิเคราะห์หลายมิติ:
+
+- `กลางบวก` เปลี่ยนจาก 📈 เป็น ↗️
+
+ความหมายปัจจุบัน:
+
+- 🚀 = แข็งแรงมาก
+- ✅ = แข็งแรง
+- ↗️ = กลางบวก
+- ⏳ = กลาง / รอดู
+- ⚠️ = อ่อน / ควรระวัง
+- 🛑 = อ่อนมาก / เสี่ยงสูง
+
+เพิ่ม cache busting เป็น `?v=2.0.6`
+
+
+
+## อัปเดต v2.0.7: ปรับสีสถานะกลางบวกเป็นสีเหลือง
+
+เวอร์ชันนี้ปรับสัญลักษณ์ `↗️ = กลางบวก` ในตารางวิเคราะห์หลายมิติให้เป็นโทน **สีเหลือง** เพื่อให้ดูเข้ากับระดับกึ่งบวก/รอดูมากขึ้น และไม่ดูเป็นเขียวเต็มตัวเกินไป
+
+
+
+## อัปเดต v2.0.8: Social Connector Fix
+
+เวอร์ชันนี้แก้เมนู **วิเคราะห์การพูดคุยใน Social Media** ที่ Facebook, X/Twitter และ Reddit ขึ้น `พบ 0 รายการ` ให้ชัดเจนและใช้งานได้จริงขึ้น:
+
+### สิ่งที่แก้
+
+- Reddit ใช้ public search หลายทางมากขึ้น:
+  - Reddit JSON search
+  - Reddit RSS search
+  - r/pennystocks
+  - r/stocks
+  - r/Shortsqueeze
+
+- X/Twitter เพิ่ม optional API support:
+  - ถ้าตั้งค่า `X_BEARER_TOKEN` หรือ `TWITTER_BEARER_TOKEN` ระบบจะดึงโพสต์จริงจาก X API v2
+  - ถ้าไม่ตั้งค่า ระบบจะแสดงสถานะว่า `ต้องใช้ API` แทนการบอกว่า `พบ 0 รายการ`
+
+- Facebook เพิ่ม optional Graph API support:
+  - ถ้าตั้งค่า `FACEBOOK_ACCESS_TOKEN` และ `FACEBOOK_PAGE_IDS` ระบบจะดึงโพสต์จากเพจที่มีสิทธิ์
+  - ถ้าไม่ตั้งค่า ระบบจะแสดงสถานะว่า `ต้องใช้สิทธิ์` เพราะ Facebook ไม่เปิด public post search แบบอิสระ
+
+- UI เปลี่ยนจาก `พบ 0 รายการ` เป็น `สถานะข้อมูล` เพื่อไม่ให้เข้าใจผิดว่าไม่มีคนพูดถึงจริง ๆ
+
+### ตัวแปรที่ตั้งเพิ่มได้ใน Render
+
+```text
+X_BEARER_TOKEN=ใส่ token จาก X API
+FACEBOOK_ACCESS_TOKEN=ใส่ Facebook Graph API token
+FACEBOOK_PAGE_IDS=page_id_1,page_id_2,page_id_3
+```
+
+ถ้าไม่ตั้งค่าเหล่านี้ Facebook และ X จะยังไม่สามารถดึงโพสต์จริงแบบอัตโนมัติได้ เพราะเป็นข้อจำกัดของแพลตฟอร์ม ไม่ใช่ bug ของระบบ
+
+
+
+## อัปเดต v2.1.0: เพิ่มเมนูเลือกหุ้น / Bitcoin
+
+เวอร์ชันนี้เพิ่ม **Asset Type Selector** ด้านบนหน้าเว็บ:
+
+- เลือก `หุ้นอเมริกา` → ใช้ระบบวิเคราะห์หุ้นเดิมทั้งหมด
+- เลือก `Bitcoin / Crypto` → ใช้โหมดวิเคราะห์คริปโต
+
+### โหมดหุ้น
+
+ยังใช้ logic เดิม เช่น:
+
+- ข่าวหุ้น
+- SEC / Dilution / Offering risk
+- Technical analysis
+- Smart Money proxy
+- Social Media
+- Prediction วันถัดไป
+- Decision Matrix แบบหุ้น
+
+### โหมด Bitcoin / Crypto
+
+เพิ่ม logic เฉพาะคริปโต เช่น:
+
+- Macro / ETF / Liquidity
+- Whale / Smart Money proxy
+- Exchange inflow / outflow proxy
+- Funding rate / Futures bias proxy
+- Open interest / liquidation risk proxy
+- BTC dominance / market regime
+- Stablecoin liquidity proxy
+- Social hype / crypto narrative
+- Crypto Risk/Reward
+- Crypto Data Quality
+
+### เหรียญที่รองรับ
+
+ตอนนี้รองรับค่าเช่น:
+
+```text
+BTC
+BTC-USD
+ETH
+ETH-USD
+SOL
+SOL-USD
+DOGE
+DOGE-USD
+```
+
+ถ้าเลือก `Bitcoin / Crypto` แล้วเว้นช่อง ticker ว่าง ระบบจะใช้ `BTC-USD` อัตโนมัติ
+
+
+
+## อัปเดต v2.1.1: ย้ายทีมปฏิบัติการใน Pixel Agent Command Room
+
+เวอร์ชันนี้ปรับ layout ของเมนู **Pixel Agent Command Room**:
+
+- ย้ายส่วน **ทีมปฏิบัติการ** จากด้านซ้าย
+- ไปอยู่ **ด้านล่างของลำดับการทำงาน**
+- ปรับ grid ของทีมปฏิบัติการให้เรียงเป็นการ์ดหลายคอลัมน์เมื่อจอกว้าง
+- บนมือถือยังเรียงเป็นคอลัมน์เดียวเพื่ออ่านง่าย
+
+ลำดับภายใน Command Room ใหม่:
+
+1. สถานีวิเคราะห์ Agent
+2. ลำดับการทำงาน
+3. ทีมปฏิบัติการ
+
+
 ## วิธีรันในเครื่อง
 
 ```bash

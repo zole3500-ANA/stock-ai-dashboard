@@ -37,7 +37,8 @@ const server = createServer(async (req, res) => {
       const market = url.searchParams.get('market') || 'AMEX';
       const days = Number(url.searchParams.get('days') || 90);
       const newsDays = Number(url.searchParams.get('newsDays') || 7);
-      const analysis = await analyzeSymbol({ symbol, market, days, newsDays });
+      const assetType = url.searchParams.get('assetType') || url.searchParams.get('mode') || 'stock';
+      const analysis = await analyzeSymbol({ symbol, market, days, newsDays, assetType });
       return jsonResponse(res, 200, analysis);
     }
 

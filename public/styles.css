@@ -932,3 +932,116 @@ body{
     font-size:1.08rem;
   }
 }
+
+/* v2.0.4 Section Order Notice */
+.version-notice{
+  position:relative;
+  z-index:1;
+  margin-top:18px;
+  padding:10px 14px;
+  border-radius:16px;
+  border:1px solid rgba(77,166,255,.22);
+  background:rgba(77,166,255,.09);
+  color:#cfe8ff;
+  font-weight:800;
+  font-size:.92rem;
+  overflow-wrap:anywhere;
+}
+
+/* v2.0.5 Status Icon Polish */
+.status-symbol.mild-bullish{
+  background:linear-gradient(180deg, rgba(53,208,127,.16), rgba(77,166,255,.08));
+  border-color:rgba(53,208,127,.28);
+}
+.status-symbol.neutral{
+  background:linear-gradient(180deg, rgba(255,200,87,.15), rgba(255,255,255,.045));
+  border-color:rgba(255,200,87,.28);
+}
+.status-symbol{
+  font-size:1.28rem;
+}
+.status-legend span b{
+  width:1.25rem;
+  text-align:center;
+}
+
+/* v2.0.6 Status Icon Refine */
+.status-symbol.mild-bullish{
+  font-size:1.42rem;
+  font-weight:950;
+  color:#9df2c2;
+  background:linear-gradient(180deg, rgba(53,208,127,.15), rgba(37,216,255,.07));
+  border-color:rgba(53,208,127,.30);
+}
+.status-legend span b{
+  font-size:1.12rem;
+}
+
+/* v2.0.7 Yellow Middle Positive Icon */
+.status-symbol.mild-bullish{
+  color:#ffc857 !important;
+  background:linear-gradient(180deg, rgba(255,200,87,.18), rgba(255,200,87,.07)) !important;
+  border-color:rgba(255,200,87,.34) !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.04), 0 0 18px rgba(255,200,87,.08);
+}
+.status-legend span:has(b){
+  white-space:nowrap;
+}
+
+/* v2.0.8 Social Connector Fix */
+.social-platform-card .news-original{
+  overflow-wrap:anywhere;
+}
+.social-platform-card .small{
+  overflow-wrap:anywhere;
+}
+
+/* v2.1.0 Crypto Mode */
+#assetTypeSelect{
+  min-width:170px;
+}
+body.asset-crypto .hero{
+  background:
+    radial-gradient(circle at top left, rgba(255,200,87,.12), transparent 30%),
+    radial-gradient(circle at top right, rgba(77,166,255,.12), transparent 30%),
+    rgba(255,255,255,.02);
+}
+body.asset-crypto .logo::after{
+  content:"₿";
+  font-weight:950;
+}
+.crypto-mode-note{
+  color:#ffc857;
+}
+#marketSelect:disabled{
+  opacity:.68;
+  cursor:not-allowed;
+}
+@media(max-width:1120px){
+  #assetTypeSelect{
+    width:100%;
+  }
+}
+
+/* v2.1.1 Command Room Roster Bottom */
+.pixel-room-layout.roster-bottom{
+  grid-template-columns:1fr;
+}
+.pixel-room-layout.roster-bottom .pixel-room-main{
+  display:grid;
+  gap:16px;
+}
+.pixel-roster-bottom{
+  margin-top:0;
+}
+.pixel-room-layout.roster-bottom .pixel-roster-list{
+  grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+}
+.pixel-room-layout.roster-bottom .pixel-roster{
+  width:100%;
+}
+@media(max-width:760px){
+  .pixel-room-layout.roster-bottom .pixel-roster-list{
+    grid-template-columns:1fr;
+  }
+}

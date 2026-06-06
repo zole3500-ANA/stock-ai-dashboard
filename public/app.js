@@ -47,8 +47,8 @@ function statusIconInfo(status, score) {
   const n = Number(score || 0);
   if (s.includes('แข็งแรงมาก') || n >= 85) return { icon: '🚀', label: 'แข็งแรงมาก', cls: 'very-bullish' };
   if (s.includes('แข็งแรง') || n >= 70) return { icon: '✅', label: 'แข็งแรง', cls: 'bullish' };
-  if (s.includes('กลางบวก') || n >= 55) return { icon: '🟢', label: 'กลางบวก', cls: 'mild-bullish' };
-  if (s.includes('กลาง') || s.includes('รอดู') || n >= 40) return { icon: '🟡', label: 'กลาง / รอดู', cls: 'neutral' };
+  if (s.includes('กลางบวก') || n >= 55) return { icon: '↗️', label: 'กลางบวก', cls: 'mild-bullish' };
+  if (s.includes('กลาง') || s.includes('รอดู') || n >= 40) return { icon: '⏳', label: 'กลาง / รอดู', cls: 'neutral' };
   if (s.includes('อ่อนมาก') || s.includes('เสี่ยงสูง') || n < 20) return { icon: '🛑', label: 'อ่อนมาก / เสี่ยงสูง', cls: 'very-bearish' };
   if (s.includes('อ่อน') || s.includes('ระวัง') || n < 40) return { icon: '⚠️', label: 'อ่อน / ควรระวัง', cls: 'bearish' };
   return { icon: '⚪', label: status || 'ยังไม่ชัด', cls: 'neutral' };
@@ -56,6 +56,50 @@ function statusIconInfo(status, score) {
 
 function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[m]));
+}
+
+function normalizeCryptoInput(value) {
+  const v = String(value || 'BTC').trim().toUpperCase();
+  const map = {
+    BTC: 'BTC-USD',
+    BITCOIN: 'BTC-USD',
+    'BTC-USD': 'BTC-USD',
+    ETH: 'ETH-USD',
+    ETHEREUM: 'ETH-USD',
+    'ETH-USD': 'ETH-USD',
+    SOL: 'SOL-USD',
+    SOLANA: 'SOL-USD',
+    'SOL-USD': 'SOL-USD',
+    DOGE: 'DOGE-USD',
+    DOGECOIN: 'DOGE-USD',
+    'DOGE-USD': 'DOGE-USD'
+  };
+  return map[v] || (v.includes('-') ? v : `${v || 'BTC'}-USD`);
+}
+
+function applyAssetTypeUi() {
+  const assetType = $('assetTypeSelect')?.value || 'stock';
+  const tickerInput = $('tickerInput');
+  const marketSelect = $('marketSelect');
+  if (!tickerInput || !marketSelect) return;
+
+  if (assetType === 'crypto') {
+    if (!tickerInput.value || !tickerInput.value.includes('-') || ['BURU','IREN','NVDA','AAPL'].includes(tickerInput.value.toUpperCase())) {
+      tickerInput.value = 'BTC';
+    }
+    tickerInput.placeholder = 'พิมพ์เหรียญ เช่น BTC, ETH, SOL, DOGE';
+    marketSelect.value = 'CRYPTO';
+    marketSelect.disabled = true;
+    marketSelect.title = 'โหมดคริปโตใช้ข้อมูล Yahoo Finance และกราฟ TradingView คู่ USD';
+  } else {
+    if (tickerInput.value.toUpperCase().endsWith('-USD') || ['BTC','ETH','SOL','DOGE'].includes(tickerInput.value.toUpperCase())) {
+      tickerInput.value = 'BURU';
+    }
+    tickerInput.placeholder = 'พิมพ์ Ticker เช่น BURU, IREN, NVDA, AAPL';
+    marketSelect.disabled = false;
+    if (marketSelect.value === 'CRYPTO') marketSelect.value = 'AMEX';
+    marketSelect.title = 'ตลาดหุ้น';
+  }
 }
 
 function setAgentMood(root, score) {
@@ -142,14 +186,16 @@ function animateRefreshPulse() {
 
 
 async function analyze() {
-  const symbol = $('tickerInput').value.trim().toUpperCase() || 'BURU';
-  const market = $('marketSelect').value;
-  setBadge($('updatedBadge'), 'กำลังวิเคราะห์...', 'info');
+  const assetType = $('assetTypeSelect')?.value || 'stock';
+  const rawSymbol = $('tickerInput').value.trim().toUpperCase();
+  const symbol = assetType === 'crypto' ? normalizeCryptoInput(rawSymbol || 'BTC') : (rawSymbol || 'BURU');
+  const market = assetType === 'crypto' ? 'CRYPTO' : $('marketSelect').value;
+  setBadge($('updatedBadge'), assetType === 'crypto' ? 'กำลังวิเคราะห์ Bitcoin/Crypto...' : 'กำลังวิเคราะห์หุ้น...', 'info');
   animateRefreshPulse();
   $('analyseBtn').disabled = true;
 
   try {
-    const res = await fetch(`/api/analyze?symbol=${encodeURIComponent(symbol)}&market=${encodeURIComponent(market)}&days=90&newsDays=7`, { cache: 'no-store' });
+    const res = await fetch(`/api/analyze?symbol=${encodeURIComponent(symbol)}&market=${encodeURIComponent(market)}&assetType=${encodeURIComponent(assetType)}&days=120&newsDays=7`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     render(data);
@@ -168,6 +214,9 @@ function render(data) {
 
   $('tickerText').textContent = symbol;
   $('companyText').textContent = profile.company;
+  if ($('assetTypeText')) $('assetTypeText').textContent = data.assetLabel || (data.assetType === 'crypto' ? 'Bitcoin / Crypto' : 'หุ้นอเมริกา');
+  document.body.classList.toggle('asset-crypto', data.assetType === 'crypto');
+  document.body.classList.toggle('asset-stock', data.assetType !== 'crypto');
   $('scoreText').textContent = `${profile.score}/100`;
   const scoreInfo = scoreMeaningFromBackend(data.scoreInterpretation || profile.scoreInterpretation, profile.score);
   $('scoreInterpretationText').textContent = `${scoreInfo.label}: ${scoreInfo.meaning}`;
@@ -549,7 +598,7 @@ function renderTradingView(symbol) {
 
 function renderLinks(links) {
   $('externalSearchLinks').innerHTML = Object.entries(links).map(([name, url]) => {
-    const label = ({ googleNews:'ค้นข่าว Google', yahooFinance:'ข่าว Yahoo Finance', nasdaqNews:'ข่าว Nasdaq', secEdgar:'เอกสาร SEC', stocktwits:'Stocktwits', xSearch:'ค้นหา X', facebookSearch:'ค้นหา Facebook', redditSearch:'ค้นหา Reddit', youtubeSearch:'ค้นหา YouTube' })[name] || name;
+    const label = ({ googleNews:'ค้นข่าว Google', yahooFinance:'ข่าว Yahoo Finance', nasdaqNews:'ข่าว Nasdaq', secEdgar:'เอกสาร SEC', stocktwits:'Stocktwits', xSearch:'ค้นหา X', facebookSearch:'ค้นหา Facebook', redditSearch:'ค้นหา Reddit', youtubeSearch:'ค้นหา YouTube', coinMarketCap:'CoinMarketCap', coingecko:'CoinGecko', tradingView:'TradingView', googleTrends:'Google Trends' })[name] || name;
     return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${label}</a>`;
   }).join('');
 }
@@ -619,7 +668,7 @@ function renderSocial(social) {
           <div>
             <span class="badge info">${escapeHtml(platform.badge || 'Social')}</span>
             <h3>${escapeHtml(platform.name)}</h3>
-            <div class="small">พบ ${platform.mentionCount || 0} รายการ • ความมั่นใจข้อมูล ${platform.confidence || 0}%</div>
+            <div class="small">สถานะข้อมูล: ${escapeHtml(platform.mentionCountLabel || String(platform.mentionCount || 0))} • ความมั่นใจข้อมูล ${platform.confidence || 0}%</div>
           </div>
           <div class="social-score ${badgeClass(platform.status)}">${escapeHtml(platform.status || '-')}</div>
         </div>
@@ -629,6 +678,7 @@ function renderSocial(social) {
           <span>Hype ${platform.hypeRisk || 0}/100</span>
         </div>
         <p class="news-snippet"><strong>วิเคราะห์:</strong> ${escapeHtml(platform.analysisTh || '-')}</p>
+        <p class="news-original"><strong>สถานะการเชื่อมต่อ:</strong> ${escapeHtml(platform.accessLabel?.detail || '-')}</p>
         <p class="news-original"><strong>ข้อจำกัด:</strong> ${escapeHtml(platform.limitation || '-')}</p>
         <ul class="social-mentions">${samples}</ul>
         <div class="tool-links">${links}</div>
@@ -698,12 +748,19 @@ function renderPrediction(p, sources) {
   $('confidenceText').textContent = `ความมั่นใจ ${p.confidence}%`;
   $('dataQualityText').textContent = `ราคา: ${sources.price} • RSI ${p.technical.rsi14} • ATR ${(p.technical.atrPct * 100).toFixed(2)}% • Volume ${p.technical.volRatio}x`;
 
+  const isCrypto = document.body.classList.contains('asset-crypto');
   $('bullCaseTitle').textContent = `เป้า ${money(p.bullCase)}`;
-  $('bullCaseText').textContent = 'เกิดเมื่อข่าวบวกหนุน ราคาเหนือ VWAP/MA5 และ volume เข้าเหนือค่าเฉลี่ย';
+  $('bullCaseText').textContent = isCrypto
+    ? 'เกิดเมื่อราคาเหนือ VWAP/MA5 พร้อม spot volume, social ไม่ร้อนเกินไป และไม่มีแรงขายจาก macro/funding/OI'
+    : 'เกิดเมื่อข่าวบวกหนุน ราคาเหนือ VWAP/MA5 และ volume เข้าเหนือค่าเฉลี่ย';
   $('baseCaseTitle').textContent = `เป้า ${money(p.baseCase)}`;
-  $('baseCaseText').textContent = 'กรณีหลักคำนวณจากแนวโน้ม โมเมนตัม RSI ปริมาณซื้อขาย MACD คะแนนข่าว และการหักคะแนนความเสี่ยง';
+  $('baseCaseText').textContent = isCrypto
+    ? 'กรณีหลักคำนวณจาก trend, momentum, RSI, volume, MACD, ข่าวคริปโต, social hype และ risk penalty'
+    : 'กรณีหลักคำนวณจากแนวโน้ม โมเมนตัม RSI ปริมาณซื้อขาย MACD คะแนนข่าว และการหักคะแนนความเสี่ยง';
   $('bearCaseTitle').textContent = `เป้า ${money(p.bearCase)}`;
-  $('bearCaseText').textContent = 'เกิดเมื่อข่าวลบกดดัน ราคาหลุดแนวรับ หรือ volume ขายสูงผิดปกติ';
+  $('bearCaseText').textContent = isCrypto
+    ? 'เกิดเมื่อราคาเสีย VWAP/แนวรับ, funding/OI crowded, มี liquidation cascade หรือ macro risk-off'
+    : 'เกิดเมื่อข่าวลบกดดัน ราคาหลุดแนวรับ หรือ volume ขายสูงผิดปกติ';
 
   $('predictionBars').innerHTML = Object.entries(p.components).map(([key, value]) => {
     const n = Number(value);
@@ -751,6 +808,11 @@ document.addEventListener('click', (e) => {
 });
 
 initShellControls();
+applyAssetTypeUi();
+$('assetTypeSelect')?.addEventListener('change', () => {
+  applyAssetTypeUi();
+  analyze();
+});
 $('analyseBtn').addEventListener('click', analyze);
 $('tickerInput').addEventListener('keydown', e => { if (e.key === 'Enter') analyze(); });
 analyze();

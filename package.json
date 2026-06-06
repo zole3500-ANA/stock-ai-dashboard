@@ -1,7 +1,7 @@
 {
   "name": "stock-ai-dashboard",
-  "version": "2.0.3",
-  "description": "Stock dashboard with updated page order: overview, chart, command room, prediction, agents, decision matrix, smart money, news, and social media.",
+  "version": "2.1.1",
+  "description": "Stock AI Dashboard with Stock/Bitcoin mode and Pixel Agent Command Room roster moved below workflow timeline.",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -49,7 +49,11 @@
     "mobile-first",
     "pixel-animation",
     "status-symbols",
-    "decision-status-icons"
+    "decision-status-icons",
+    "crypto-mode",
+    "bitcoin",
+    "btc",
+    "asset-selector"
   ],
   "author": "zole3500-ANA + ChatGPT",
   "license": "MIT"
