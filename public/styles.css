@@ -859,3 +859,76 @@ body{
     bottom:14px;
   }
 }
+
+
+/* v2.0.1 Decision Matrix Status Symbols */
+.status-legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:12px 0 8px;
+}
+.status-legend span{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.09);
+  background:rgba(255,255,255,.045);
+  color:#dbe8ff;
+  font-size:.84rem;
+  font-weight:800;
+}
+.status-legend b{
+  font-size:1rem;
+  line-height:1;
+}
+.status-symbol{
+  width:42px;
+  height:42px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:15px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.045);
+  font-size:1.2rem;
+  line-height:1;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);
+}
+.status-symbol.very-bullish,
+.status-symbol.bullish,
+.status-symbol.mild-bullish{
+  background:rgba(53,208,127,.12);
+  border-color:rgba(53,208,127,.24);
+}
+.status-symbol.neutral{
+  background:rgba(255,200,87,.12);
+  border-color:rgba(255,200,87,.24);
+}
+.status-symbol.bearish,
+.status-symbol.very-bearish{
+  background:rgba(255,82,99,.12);
+  border-color:rgba(255,82,99,.24);
+}
+.decision-table th:nth-child(4),
+.decision-table td:nth-child(4){
+  text-align:center;
+  width:76px;
+  min-width:76px;
+}
+@media(max-width:720px){
+  .status-legend{
+    gap:6px;
+  }
+  .status-legend span{
+    font-size:.78rem;
+    padding:6px 8px;
+  }
+  .status-symbol{
+    width:38px;
+    height:38px;
+    font-size:1.08rem;
+  }
+}

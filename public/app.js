@@ -42,6 +42,18 @@ function scoreMeaningFromBackend(obj, fallbackScore) {
   return { label: m.label, meaning: m.detail, tone: m.cls, thaiSummary: `${fallbackScore}/100 = ${m.label}: ${m.detail}` };
 }
 
+function statusIconInfo(status, score) {
+  const s = String(status || '').toLowerCase();
+  const n = Number(score || 0);
+  if (s.includes('แข็งแรงมาก') || n >= 85) return { icon: '🚀', label: 'แข็งแรงมาก', cls: 'very-bullish' };
+  if (s.includes('แข็งแรง') || n >= 70) return { icon: '✅', label: 'แข็งแรง', cls: 'bullish' };
+  if (s.includes('กลางบวก') || n >= 55) return { icon: '🟢', label: 'กลางบวก', cls: 'mild-bullish' };
+  if (s.includes('กลาง') || s.includes('รอดู') || n >= 40) return { icon: '🟡', label: 'กลาง / รอดู', cls: 'neutral' };
+  if (s.includes('อ่อนมาก') || s.includes('เสี่ยงสูง') || n < 20) return { icon: '🛑', label: 'อ่อนมาก / เสี่ยงสูง', cls: 'very-bearish' };
+  if (s.includes('อ่อน') || s.includes('ระวัง') || n < 40) return { icon: '⚠️', label: 'อ่อน / ควรระวัง', cls: 'bearish' };
+  return { icon: '⚪', label: status || 'ยังไม่ชัด', cls: 'neutral' };
+}
+
 function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[m]));
 }
@@ -715,7 +727,10 @@ function renderFactors(factors) {
       <td>${f.index}</td>
       <td><strong>${escapeHtml(f.dimension)}</strong></td>
       <td><span class="factor-score ${scoreCls}">${escapeHtml(f.scoreText || `${score}/100`)}</span></td>
-      <td><span class="badge ${badgeClass(f.status)}">${escapeHtml(f.status)}</span></td>
+      <td>${(() => {
+        const info = statusIconInfo(f.status, f.score);
+        return `<span class="status-symbol ${info.cls}" title="${escapeHtml(info.label)}" aria-label="${escapeHtml(info.label)}">${info.icon}</span>`;
+      })()}</td>
       <td>${escapeHtml(f.weight || '-')}</td>
       <td>${escapeHtml(f.confidence || '-')}</td>
       <td>${escapeHtml(f.priceImpact || '-')}</td>

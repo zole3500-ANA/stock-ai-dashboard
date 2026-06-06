@@ -53,14 +53,14 @@
 
       <nav class="sidebar-nav">
         <a href="#overview" class="nav-link active"><span>🏠</span><div><strong>ภาพรวม</strong><small>Overview</small></div></a>
-        <a href="#command-room" class="nav-link"><span>🕹️</span><div><strong>Command Room</strong><small>Pixel Agent UI</small></div></a>
         <a href="#market" class="nav-link"><span>📊</span><div><strong>กราฟ + คำตัดสิน</strong><small>Chart & Verdict</small></div></a>
-        <a href="#agents-panel" class="nav-link"><span>🧠</span><div><strong>3 Agent</strong><small>โบ้ • Grok • ป๊อก</small></div></a>
-        <a href="#smartmoney" class="nav-link"><span>🏦</span><div><strong>Smart Money</strong><small>เงินใหญ่</small></div></a>
-        <a href="#social" class="nav-link"><span>📣</span><div><strong>Social Radar</strong><small>กระแสผู้คน</small></div></a>
-        <a href="#news" class="nav-link"><span>📰</span><div><strong>ข่าวสำคัญ</strong><small>Thai News</small></div></a>
+        <a href="#command-room" class="nav-link"><span>🕹️</span><div><strong>Command Room</strong><small>Pixel Agent UI</small></div></a>
         <a href="#prediction" class="nav-link"><span>🔮</span><div><strong>Prediction</strong><small>วันถัดไป</small></div></a>
+        <a href="#agents-panel" class="nav-link"><span>🧠</span><div><strong>3 Agent</strong><small>โบ้ • Grok • ป๊อก</small></div></a>
         <a href="#factors" class="nav-link"><span>🧾</span><div><strong>Decision Matrix</strong><small>หลายมิติ</small></div></a>
+        <a href="#smartmoney" class="nav-link"><span>🏦</span><div><strong>Smart Money</strong><small>เงินใหญ่</small></div></a>
+        <a href="#news" class="nav-link"><span>📰</span><div><strong>ข่าวสำคัญ</strong><small>Thai News</small></div></a>
+        <a href="#social" class="nav-link"><span>📣</span><div><strong>Social Radar</strong><small>กระแสผู้คน</small></div></a>
       </nav>
 
       <section class="sidebar-panel">
@@ -155,6 +155,18 @@
 
 
 
+    
+
+    
+
+    
+
+    
+
+    
+
+
+
     <section class="panel pixel-room-section" style="margin-top:18px;" id="command-room">
       <div class="panel-title"><h2>🕹️ Pixel Agent Command Room</h2><span class="badge info" id="roomOverallStatus">กำลังวิเคราะห์...</span></div>
       <div class="disclaimer" style="margin-top:0;">อินเทอร์เฟซนี้ได้แรงบันดาลใจจากแนวคิด multi-agent แบบ pixel office และปรับให้เหมาะกับระบบวิเคราะห์หุ้น: เห็นบทบาทของ agent, สถานะงาน, สัญญาณที่ต้องจับตา และลำดับการตัดสินใจในห้องวิเคราะห์เดียว</div>
@@ -180,11 +192,68 @@
       </div>
     </section>
 
+
+
+    <section class="panel" style="margin-top:18px;" id="prediction">
+      <div class="panel-title"><h2>🔮 ทำนายราคาวันถัดไป พร้อมเหตุผลเชิงตรรก</h2><span class="badge purple" id="predictionStatus">-</span></div>
+      <div class="prediction-main">
+        <div class="prediction-card"><div class="label">ราคาล่าสุดที่ใช้คำนวณ</div><div class="big mono" id="lastPriceText">-</div><div class="small" id="dataQualityText">-</div></div>
+        <div class="prediction-card"><div class="label">คาดการณ์วันถัดไป</div><div class="big mono" id="predictedPriceText">-</div><div class="small" id="predictedReturnText">-</div></div>
+        <div class="prediction-card"><div class="label">กรอบราคาที่เป็นไปได้</div><div class="big mono" id="predictedRangeText">-</div><div class="small" id="confidenceText">-</div></div>
+      </div>
+      <div class="scenario">
+        <div class="box"><span class="badge bullish">กรณีดี</span><h3 id="bullCaseTitle">-</h3><p id="bullCaseText" class="small">-</p></div>
+        <div class="box"><span class="badge neutral">กรณีหลัก</span><h3 id="baseCaseTitle">-</h3><p id="baseCaseText" class="small">-</p></div>
+        <div class="box"><span class="badge bearish">กรณีแย่</span><h3 id="bearCaseTitle">-</h3><p id="bearCaseText" class="small">-</p></div>
+      </div>
+      <h3 style="margin-top:18px;">คะแนนปัจจัยที่ใช้ทำนาย</h3>
+      <div class="factor-bars" id="predictionBars"></div>
+      <h3 style="margin-top:18px;">เหตุผลเชิงตรรกแบบละเอียด</h3>
+      <ol class="logic-list" id="predictionLogic"></ol>
+    </section>
+
+
+
     <section class="panel" style="margin-top:18px;" id="agents-panel">
       <div class="panel-title"><h2>🧠 วิเคราะห์ละเอียดแบบ 3 Agent</h2><span class="badge purple">โบ้ + Grok + ป๊อก</span></div>
       <div class="disclaimer" style="margin-top:0;">ผลวิเคราะห์ส่วนนี้เป็นภาษาไทยทั้งหมด แยกมุมมองเป็น โบ้ (พื้นฐาน/ข่าว), Grok (สายซิ่ง/โมเมนตัม), และป๊อก (สายเทคนิค/จุดเข้าออก)</div>
       <div class="agents-grid" id="agentsGrid">
         <div class="agent-card"><div class="loading">กำลังโหลดการวิเคราะห์ 3 Agent...</div></div>
+      </div>
+    </section>
+
+
+
+    <section class="panel" style="margin-top:18px;" id="factors">
+      <div class="panel-title"><h2>ตารางวิเคราะห์หลายมิติ</h2><span class="badge info">Decision Matrix</span></div>
+      <div class="disclaimer" style="margin-top:0;">ตารางนี้เพิ่มคะแนนรายมิติ น้ำหนัก ความมั่นใจ ผลต่อราคา ระยะเวลา สิ่งที่ต้องจับตา และ Action เพื่อให้ใช้เป็นระบบช่วยตัดสินใจ ไม่ใช่แค่ตารางสรุปข้อมูล</div>
+      <div class="status-legend" aria-label="คำอธิบายสัญลักษณ์สถานะ">
+        <span><b>🚀</b> แข็งแรงมาก</span>
+        <span><b>✅</b> แข็งแรง</span>
+        <span><b>🟢</b> กลางบวก</span>
+        <span><b>🟡</b> กลาง / รอดู</span>
+        <span><b>⚠️</b> อ่อน / ควรระวัง</span>
+        <span><b>🛑</b> อ่อนมาก / เสี่ยงสูง</span>
+      </div>
+      <div class="table-scroll">
+        <table class="decision-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>มิติ</th>
+              <th>คะแนน</th>
+              <th>สถานะ</th>
+              <th>น้ำหนัก</th>
+              <th>ความมั่นใจ</th>
+              <th>ผลต่อราคา</th>
+              <th>ระยะเวลา</th>
+              <th>สรุปภาษาชาวบ้าน</th>
+              <th>สิ่งที่ต้องจับตา</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="factorBody"></tbody>
+        </table>
       </div>
     </section>
 
@@ -208,6 +277,16 @@
     </section>
 
 
+
+    <section class="panel" style="margin-top:18px;" id="news">
+      <div class="panel-title"><h2>🌐 ข่าวสำคัญในสัปดาห์นี้ / ข่าวสำคัญอื่น ๆ (สรุปและแปลไทยทั้งหมด)</h2><span class="badge info" id="newsStatus">-</span></div>
+      <div class="disclaimer" style="margin-top:0;">ระบบค้นข่าวจาก GDELT / Google News RSS แล้วแปลหัวข่าว/สรุปข่าวเป็นไทย พร้อมจัดอันดับจากผลกระทบและ sentiment เช่น ผลประกอบการ เพิ่มทุน dilution สัญญา SEC delisting คดีความ และนักวิเคราะห์</div>
+      <div class="tool-links" id="externalSearchLinks"></div>
+      <div class="news-list" id="newsList"><div class="news-item"><div class="loading">กำลังโหลดข่าว...</div></div></div>
+    </section>
+
+
+
     <section class="panel" style="margin-top:18px;" id="social">
       <div class="panel-title"><h2>📣 วิเคราะห์การพูดคุยใน Social Media</h2><span class="badge info" id="socialStatus">-</span></div>
       <div class="disclaimer" style="margin-top:0;">วิเคราะห์กระแสจาก Facebook, X, Reddit, Stocktwits และแหล่งอื่นที่สำคัญ เช่น YouTube, Google Trends และเว็บบอร์ด โดยแสดงผลเป็นภาษาไทย พร้อมประเมิน sentiment, ความร้อนแรง, และความเสี่ยงการปั่นกระแส</div>
@@ -221,55 +300,6 @@
       <div class="social-risk-grid">
         <div class="social-box"><h3>ความเสี่ยงที่ต้องระวัง</h3><ul id="socialRisks"></ul></div>
         <div class="social-box"><h3>โอกาส / สัญญาณบวก</h3><ul id="socialOpportunities"></ul></div>
-      </div>
-    </section>
-    <section class="panel" style="margin-top:18px;" id="news">
-      <div class="panel-title"><h2>🌐 ข่าวสำคัญในสัปดาห์นี้ / ข่าวสำคัญอื่น ๆ (สรุปและแปลไทยทั้งหมด)</h2><span class="badge info" id="newsStatus">-</span></div>
-      <div class="disclaimer" style="margin-top:0;">ระบบค้นข่าวจาก GDELT / Google News RSS แล้วแปลหัวข่าว/สรุปข่าวเป็นไทย พร้อมจัดอันดับจากผลกระทบและ sentiment เช่น ผลประกอบการ เพิ่มทุน dilution สัญญา SEC delisting คดีความ และนักวิเคราะห์</div>
-      <div class="tool-links" id="externalSearchLinks"></div>
-      <div class="news-list" id="newsList"><div class="news-item"><div class="loading">กำลังโหลดข่าว...</div></div></div>
-    </section>
-
-    <section class="panel" style="margin-top:18px;" id="prediction">
-      <div class="panel-title"><h2>🔮 ทำนายราคาวันถัดไป พร้อมเหตุผลเชิงตรรก</h2><span class="badge purple" id="predictionStatus">-</span></div>
-      <div class="prediction-main">
-        <div class="prediction-card"><div class="label">ราคาล่าสุดที่ใช้คำนวณ</div><div class="big mono" id="lastPriceText">-</div><div class="small" id="dataQualityText">-</div></div>
-        <div class="prediction-card"><div class="label">คาดการณ์วันถัดไป</div><div class="big mono" id="predictedPriceText">-</div><div class="small" id="predictedReturnText">-</div></div>
-        <div class="prediction-card"><div class="label">กรอบราคาที่เป็นไปได้</div><div class="big mono" id="predictedRangeText">-</div><div class="small" id="confidenceText">-</div></div>
-      </div>
-      <div class="scenario">
-        <div class="box"><span class="badge bullish">กรณีดี</span><h3 id="bullCaseTitle">-</h3><p id="bullCaseText" class="small">-</p></div>
-        <div class="box"><span class="badge neutral">กรณีหลัก</span><h3 id="baseCaseTitle">-</h3><p id="baseCaseText" class="small">-</p></div>
-        <div class="box"><span class="badge bearish">กรณีแย่</span><h3 id="bearCaseTitle">-</h3><p id="bearCaseText" class="small">-</p></div>
-      </div>
-      <h3 style="margin-top:18px;">คะแนนปัจจัยที่ใช้ทำนาย</h3>
-      <div class="factor-bars" id="predictionBars"></div>
-      <h3 style="margin-top:18px;">เหตุผลเชิงตรรกแบบละเอียด</h3>
-      <ol class="logic-list" id="predictionLogic"></ol>
-    </section>
-
-    <section class="panel" style="margin-top:18px;" id="factors">
-      <div class="panel-title"><h2>ตารางวิเคราะห์หลายมิติ</h2><span class="badge info">Decision Matrix</span></div>
-      <div class="disclaimer" style="margin-top:0;">ตารางนี้เพิ่มคะแนนรายมิติ น้ำหนัก ความมั่นใจ ผลต่อราคา ระยะเวลา สิ่งที่ต้องจับตา และ Action เพื่อให้ใช้เป็นระบบช่วยตัดสินใจ ไม่ใช่แค่ตารางสรุปข้อมูล</div>
-      <div class="table-scroll">
-        <table class="decision-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>มิติ</th>
-              <th>คะแนน</th>
-              <th>สถานะ</th>
-              <th>น้ำหนัก</th>
-              <th>ความมั่นใจ</th>
-              <th>ผลต่อราคา</th>
-              <th>ระยะเวลา</th>
-              <th>สรุปภาษาชาวบ้าน</th>
-              <th>สิ่งที่ต้องจับตา</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="factorBody"></tbody>
-        </table>
       </div>
     </section>
 
