@@ -16,8 +16,8 @@ function percent(value) {
 
 function badgeClass(text) {
   const s = String(text || '').toLowerCase();
-  if (s.includes('bull') || s.includes('positive') || s.includes('above') || s.includes('น่าสนใจ') || s.includes('แข็ง')) return 'bullish';
-  if (s.includes('bear') || s.includes('negative') || s.includes('below') || s.includes('weak') || s.includes('risk') || s.includes('ระวัง') || s.includes('ลบ')) return 'bearish';
+  if (s.includes('bull') || s.includes('positive') || s.includes('above') || s.includes('น่าสนใจ') || s.includes('แข็ง') || s.includes('บวก') || s.includes('ดีขึ้น') || s.includes('เหนือ')) return 'bullish';
+  if (s.includes('bear') || s.includes('negative') || s.includes('below') || s.includes('weak') || s.includes('risk') || s.includes('ระวัง') || s.includes('ลบ') || s.includes('อ่อน') || s.includes('ใต้') || s.includes('เสี่ยง')) return 'bearish';
   return 'neutral';
 }
 
@@ -63,7 +63,7 @@ function render(data) {
   setBadge($('decisionBadge'), summary.label);
   $('summaryHeadline').textContent = summary.headline;
   $('summaryText').textContent = summary.text;
-  $('thesisBox').innerHTML = `<strong>Thesis:</strong> ${escapeHtml(profile.thesis)}`;
+  $('thesisBox').innerHTML = `<strong>แกนวิเคราะห์:</strong> ${escapeHtml(profile.thesis)}`;
   $('supportText').textContent = money(summary.actionPlan.support);
   $('resistanceText').textContent = money(summary.actionPlan.resistance);
   $('stopText').textContent = money(summary.actionPlan.stopLoss);
@@ -71,6 +71,7 @@ function render(data) {
 
   renderTradingView(data.tradingViewSymbol);
   renderLinks(data.externalLinks);
+  renderAgents(data.agents || []);
   renderNews(data.news, data.dataSources);
   renderPrediction(prediction, data.dataSources);
   renderFactors(data.factors);
@@ -107,7 +108,7 @@ function renderTradingView(symbol) {
 
 function renderLinks(links) {
   $('externalSearchLinks').innerHTML = Object.entries(links).map(([name, url]) => {
-    const label = ({ googleNews:'Google Search', yahooFinance:'Yahoo Finance', nasdaqNews:'Nasdaq News', secEdgar:'SEC EDGAR', stocktwits:'Stocktwits' })[name] || name;
+    const label = ({ googleNews:'ค้นข่าว Google', yahooFinance:'ข่าว Yahoo Finance', nasdaqNews:'ข่าว Nasdaq', secEdgar:'เอกสาร SEC', stocktwits:'Stocktwits' })[name] || name;
     return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${label}</a>`;
   }).join('');
 }
@@ -121,14 +122,47 @@ function renderNews(news, sources) {
     return `<div class="news-item">
       <div class="news-head">
         <div>
-          <a class="news-title" href="${escapeHtml(a.url)}" target="_blank" rel="noopener">${i + 1}. ${escapeHtml(a.title)}</a>
-          <div class="news-meta">${escapeHtml(a.source)} • ${published} • Impact ${a.impactScore}/100 • Sentiment ${a.sentimentScore}</div>
+          <a class="news-title" href="${escapeHtml(a.url)}" target="_blank" rel="noopener">${i + 1}. ${escapeHtml(a.titleTh || a.title)}</a>
+          <div class="news-meta">${escapeHtml(a.source)} • ${published} • ผลกระทบ ${a.impactScore}/100 • คะแนนข่าว ${a.sentimentScore}</div>
         </div>
-        <span class="badge ${cls}">${label}</span>
+        <span class="badge ${cls}">${escapeHtml(a.sentimentLabelTh || label)}</span>
       </div>
-      <p class="news-snippet">${escapeHtml(a.snippet || 'ไม่มีคำอธิบายจากแหล่งข่าวนี้')}</p>
+      <p class="news-snippet"><strong>แปลไทย:</strong> ${escapeHtml(a.snippetTh || a.snippet || 'ไม่มีคำอธิบายจากแหล่งข่าวนี้')}</p>
+      <p class="news-snippet"><strong>เหตุผลผลกระทบ:</strong> ${escapeHtml(a.impactReasonTh || 'ต้องตรวจข่าวต้นทางเพิ่มเติม')}</p>
+      <p class="news-original"><strong>ต้นฉบับ:</strong> ${escapeHtml(a.titleOriginal || a.title)}</p>
     </div>`;
   }).join('');
+}
+
+function renderAgents(agents) {
+  const grid = $('agentsGrid');
+  if (!grid) return;
+  if (!agents.length) {
+    grid.innerHTML = '<div class="agent-card"><div class="warn">ยังไม่มีข้อมูล Agent</div></div>';
+    return;
+  }
+
+  grid.innerHTML = agents.map(agent => `
+    <article class="agent-card ${escapeHtml(agent.id || '')}">
+      <div class="agent-head">
+        <div>
+          <span class="badge info">${escapeHtml(agent.badge || 'Agent')}</span>
+          <h3>${escapeHtml(agent.name)}</h3>
+          <div class="small">${escapeHtml(agent.role)}</div>
+        </div>
+        <div class="agent-score">${Number(agent.score || 0)}/100</div>
+      </div>
+      <div class="thesis"><strong>สรุป:</strong> ${escapeHtml(agent.summary || agent.verdict || '-')}</div>
+      <div class="agent-sections">
+        ${(agent.sections || []).map(section => `
+          <section class="agent-section">
+            <h4>${escapeHtml(section.title)}</h4>
+            <ul>${(section.points || []).map(point => `<li>${escapeHtml(point)}</li>`).join('')}</ul>
+          </section>
+        `).join('')}
+      </div>
+    </article>
+  `).join('');
 }
 
 function renderPrediction(p, sources) {
@@ -143,7 +177,7 @@ function renderPrediction(p, sources) {
   $('bullCaseTitle').textContent = `เป้า ${money(p.bullCase)}`;
   $('bullCaseText').textContent = 'เกิดเมื่อข่าวบวกหนุน ราคาเหนือ VWAP/MA5 และ volume เข้าเหนือค่าเฉลี่ย';
   $('baseCaseTitle').textContent = `เป้า ${money(p.baseCase)}`;
-  $('baseCaseText').textContent = 'กรณีหลักคำนวณจาก trend, momentum, RSI, volume, MACD, news และ risk penalty';
+  $('baseCaseText').textContent = 'กรณีหลักคำนวณจากแนวโน้ม โมเมนตัม RSI ปริมาณซื้อขาย MACD คะแนนข่าว และการหักคะแนนความเสี่ยง';
   $('bearCaseTitle').textContent = `เป้า ${money(p.bearCase)}`;
   $('bearCaseText').textContent = 'เกิดเมื่อข่าวลบกดดัน ราคาหลุดแนวรับ หรือ volume ขายสูงผิดปกติ';
 
@@ -158,7 +192,7 @@ function renderPrediction(p, sources) {
 }
 
 function componentName(key) {
-  return ({ trend:'Trend / MA / VWAP', momentum:'Momentum', rsi:'RSI', volume:'Volume', macd:'MACD', news:'News Sentiment', aiScore:'AI Score', riskPenalty:'Risk Penalty' })[key] || key;
+  return ({ trend:'แนวโน้ม / MA / VWAP', momentum:'โมเมนตัม', rsi:'RSI', volume:'ปริมาณซื้อขาย', macd:'MACD', news:'คะแนนข่าว', aiScore:'คะแนน AI', riskPenalty:'หักคะแนนความเสี่ยง' })[key] || key;
 }
 
 function renderFactors(factors) {
