@@ -1,7 +1,7 @@
 {
   "name": "stock-ai-dashboard",
-  "version": "1.9.1",
-  "description": "Stock dashboard with Thai AI agents, sidebar mockup, cute agent brand icon, real pixel avatars, and overflow fixes for Pixel Agent Command Room.",
+  "version": "2.0.0",
+  "description": "Stock dashboard with animated Thai pixel agents, collapsible sidebar, mobile-first UI, decision matrix, smart money, social media intelligence, and next-day prediction.",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -43,7 +43,11 @@
     "sidebar-ui",
     "pixel-avatar",
     "pixel-agents-inspired",
-    "agent-sidebar"
+    "agent-sidebar",
+    "animated-agents",
+    "collapsible-sidebar",
+    "mobile-first",
+    "pixel-animation"
   ],
   "author": "zole3500-ANA + ChatGPT",
   "license": "MIT"

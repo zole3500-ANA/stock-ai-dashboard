@@ -10,7 +10,8 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div class="dashboard-shell">
+  <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-label="เปิดเมนู">☰</button>
+  <div class="dashboard-shell" id="dashboardShell">
     <aside class="sidebar">
       <div class="sidebar-brand">
         <div class="sidebar-logo cute-agent-logo" aria-hidden="true">
@@ -43,10 +44,11 @@
             </g>
           </svg>
         </div>
-        <div>
+        <div class="sidebar-brand-text">
           <div class="sidebar-title">Stock AI</div>
-          <div class="sidebar-subtitle">Pixel Agent v1.9</div>
+          <div class="sidebar-subtitle">Pixel Agent v2.0</div>
         </div>
+        <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="ยุบหรือขยายเมนู" title="ยุบ/ขยายเมนู">⇤</button>
       </div>
 
       <nav class="sidebar-nav">
@@ -274,6 +276,7 @@
     <div class="footer">Stock AI Dashboard • วิเคราะห์ภาษาไทย + ข่าวแปลไทย + Social Media + 3 Agent + ทำนายราคาวันถัดไป</div>
   </main>
   </div>
+  <button class="scroll-top" id="scrollTopBtn" type="button" aria-label="กลับขึ้นด้านบน">↑</button>
   <script src="https://s3.tradingview.com/tv.js"></script>
   <script type="module" src="/app.js"></script>
 </body>

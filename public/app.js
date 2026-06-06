@@ -46,10 +46,94 @@ function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[m]));
 }
 
+function setAgentMood(root, score) {
+  if (!root) return;
+  const tone = scoreTone(Number(score || 0));
+  root.dataset.mood = tone;
+  root.classList.remove('is-bullish', 'is-neutral', 'is-bearish');
+  root.classList.add(`is-${tone}`);
+}
+
+function initShellControls() {
+  const shell = $('dashboardShell');
+  const sidebarToggle = $('sidebarToggle');
+  const mobileToggle = $('mobileMenuToggle');
+  const scrollTopBtn = $('scrollTopBtn');
+  if (!shell) return;
+
+  const stored = localStorage.getItem('stock-ai-sidebar-collapsed') === '1';
+  if (stored && window.innerWidth > 1120) shell.classList.add('sidebar-collapsed');
+  updateSidebarToggleLabel();
+
+  sidebarToggle?.addEventListener('click', () => {
+    shell.classList.toggle('sidebar-collapsed');
+    localStorage.setItem('stock-ai-sidebar-collapsed', shell.classList.contains('sidebar-collapsed') ? '1' : '0');
+    updateSidebarToggleLabel();
+  });
+
+  mobileToggle?.addEventListener('click', () => {
+    shell.classList.toggle('sidebar-open');
+    mobileToggle.textContent = shell.classList.contains('sidebar-open') ? '×' : '☰';
+    mobileToggle.setAttribute('aria-label', shell.classList.contains('sidebar-open') ? 'ปิดเมนู' : 'เปิดเมนู');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!shell.classList.contains('sidebar-open')) return;
+    const inSidebar = e.target.closest('.sidebar');
+    const inToggle = e.target.closest('#mobileMenuToggle');
+    const isNav = e.target.closest('.nav-link');
+    if ((!inSidebar && !inToggle) || isNav) {
+      shell.classList.remove('sidebar-open');
+      if (mobileToggle) {
+        mobileToggle.textContent = '☰';
+        mobileToggle.setAttribute('aria-label', 'เปิดเมนู');
+      }
+    }
+  });
+
+  scrollTopBtn?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  window.addEventListener('scroll', () => {
+    if (!scrollTopBtn) return;
+    scrollTopBtn.classList.toggle('show', window.scrollY > 520);
+    updateActiveNavByScroll();
+  }, { passive: true });
+
+  updateActiveNavByScroll();
+}
+
+function updateSidebarToggleLabel() {
+  const shell = $('dashboardShell');
+  const btn = $('sidebarToggle');
+  if (!shell || !btn) return;
+  const collapsed = shell.classList.contains('sidebar-collapsed');
+  btn.textContent = collapsed ? '⇥' : '⇤';
+  btn.title = collapsed ? 'ขยายเมนู' : 'ยุบเมนู';
+  btn.setAttribute('aria-label', collapsed ? 'ขยายเมนู' : 'ยุบเมนู');
+}
+
+function updateActiveNavByScroll() {
+  const links = [...document.querySelectorAll('.nav-link[href^="#"]')];
+  if (!links.length) return;
+  let active = links[0];
+  const y = window.scrollY + 130;
+  for (const link of links) {
+    const section = document.querySelector(link.getAttribute('href'));
+    if (section && section.offsetTop <= y) active = link;
+  }
+  links.forEach(a => a.classList.toggle('active', a === active));
+}
+
+function animateRefreshPulse() {
+  document.body.classList.add('refresh-pulse');
+  window.setTimeout(() => document.body.classList.remove('refresh-pulse'), 950);
+}
+
+
 async function analyze() {
   const symbol = $('tickerInput').value.trim().toUpperCase() || 'BURU';
   const market = $('marketSelect').value;
   setBadge($('updatedBadge'), 'กำลังวิเคราะห์...', 'info');
+  animateRefreshPulse();
   $('analyseBtn').disabled = true;
 
   try {
@@ -89,6 +173,7 @@ function render(data) {
   $('resistanceText').title = summary.actionPlan.resistanceSource || 'คำนวณจากข้อมูลราคา';
   $('stopText').title = summary.actionPlan.stopLossSource || 'คำนวณจากข้อมูลราคา';
   $('symbolBadge').textContent = data.tradingViewSymbol;
+  setAgentMood(document.body, profile.score);
   renderSidebar(data);
   renderAgentRoom(data);
 
@@ -650,6 +735,7 @@ document.addEventListener('click', (e) => {
   link.classList.add('active');
 });
 
+initShellControls();
 $('analyseBtn').addEventListener('click', analyze);
 $('tickerInput').addEventListener('keydown', e => { if (e.key === 'Enter') analyze(); });
 analyze();

@@ -134,6 +134,33 @@
 เหมาะสำหรับใช้งานจริงต่อจาก v1.9 โดยไม่ต้องเปลี่ยน logic การวิเคราะห์
 
 
+
+## อัปเดต v2.0: Animated Agents + Collapsible Sidebar + Smooth Mobile
+
+เวอร์ชันนี้ปรับ UI/UX ใหญ่จาก v1.9.1 โดยเพิ่ม:
+
+- **Agent Animation**
+  - Pixel avatar ขยับแบบ idle/bob animation
+  - Agent cards และ station cards มี hover interaction
+  - ตอนกดวิเคราะห์ใหม่ agent จะ pulse/jump เพื่อบอกว่าระบบกำลังทำงาน
+
+- **Sidebar ยุบ/ขยายได้**
+  - ปุ่มยุบ/ขยายบน desktop
+  - จำสถานะ sidebar ด้วย `localStorage`
+  - mobile ใช้ปุ่ม hamburger เปิด/ปิดเมนู
+
+- **Mobile UI ลื่นขึ้น**
+  - ปรับ grid ให้เป็น single-column บนมือถือ
+  - timeline เลื่อนแนวนอนได้แบบ smooth
+  - เพิ่มปุ่มกลับขึ้นด้านบน
+  - ปรับ card, badge, chart, table และ touch behavior ให้ใช้งานง่ายขึ้นบนจอเล็ก
+
+- **Navigation ดีขึ้น**
+  - เมนู sidebar highlight ตาม section ที่กำลังดู
+  - anchor scroll ลื่นขึ้น
+  - ลดปัญหา overflow บนจอแคบ
+
+
 ## วิธีรันในเครื่อง
 
 ```bash
