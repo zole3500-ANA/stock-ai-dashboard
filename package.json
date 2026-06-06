@@ -1,7 +1,7 @@
 {
   "name": "stock-ai-dashboard",
-  "version": "1.1.0",
-  "description": "Thai-first stock dashboard with translated news, 3-agent analysis, technical factors, and next-day prediction heuristic.",
+  "version": "1.6.0",
+  "description": "Thai-first stock dashboard with score interpretation, smart money analysis, Thai news, social media intelligence, 3-agent analysis, and next-day prediction heuristic.",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -21,7 +21,15 @@
     "prediction",
     "thai",
     "agents",
-    "translation"
+    "translation",
+    "social-media",
+    "reddit",
+    "stocktwits",
+    "smart-money",
+    "obv",
+    "cmf",
+    "mfi",
+    "vwap"
   ],
   "author": "zole3500-ANA + ChatGPT",
   "license": "MIT"

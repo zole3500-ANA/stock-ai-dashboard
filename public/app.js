@@ -26,6 +26,22 @@ function setBadge(el, text, extra = '') {
   el.className = `badge ${extra || badgeClass(text)}`;
 }
 
+function scoreMeaning(score) {
+  const n = Math.max(0, Math.min(100, Math.round(Number(score) || 0)));
+  if (n <= 19) return { label: 'อ่อนมาก / เสี่ยงมาก', detail: 'สัญญาณรวมเสียเปรียบมาก ควรหลีกเลี่ยงการไล่ราคาและรอข้อมูลยืนยันใหม่', cls: 'bearish' };
+  if (n <= 39) return { label: 'อ่อน / ควรระวัง', detail: 'ความเสี่ยงมากกว่าผลตอบแทน เหมาะกับการเฝ้าดูหรือเทรดสั้นแบบมี Stop-loss เท่านั้น', cls: 'bearish' };
+  if (n <= 54) return { label: 'กลางลบ / ยังไม่ชัด', detail: 'ปัจจัยบวกและลบยังคานกัน ต้องรอ trigger จากราคา ข่าว และ volume', cls: 'neutral' };
+  if (n <= 69) return { label: 'กลางบวก / เริ่มน่าสนใจ', detail: 'เริ่มมีสัญญาณหนุนบางส่วน แต่ยังต้องรอจุดยืนยันก่อนเพิ่มน้ำหนัก', cls: 'neutral' };
+  if (n <= 84) return { label: 'แข็งแรง / น่าสนใจ', detail: 'หลายปัจจัยเริ่มเข้าทาง สามารถวางแผนตามแนวรับแนวต้านและบริหารกำไร', cls: 'bullish' };
+  return { label: 'แข็งแรงมาก / โมเมนตัมเด่น', detail: 'สัญญาณรวมเด่นมาก แต่ต้องระวังราคาเริ่มร้อนและแรงขายทำกำไร', cls: 'bullish' };
+}
+
+function scoreMeaningFromBackend(obj, fallbackScore) {
+  if (obj?.label || obj?.meaning) return obj;
+  const m = scoreMeaning(fallbackScore);
+  return { label: m.label, meaning: m.detail, tone: m.cls, thaiSummary: `${fallbackScore}/100 = ${m.label}: ${m.detail}` };
+}
+
 function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[m]));
 }
@@ -57,6 +73,8 @@ function render(data) {
   $('tickerText').textContent = symbol;
   $('companyText').textContent = profile.company;
   $('scoreText').textContent = `${profile.score}/100`;
+  const scoreInfo = scoreMeaningFromBackend(data.scoreInterpretation || profile.scoreInterpretation, profile.score);
+  $('scoreInterpretationText').textContent = `${scoreInfo.label}: ${scoreInfo.meaning}`;
   $('dialScore').textContent = profile.score;
   $('biasText').textContent = prediction.verdict;
   $('riskText').textContent = summary.risk;
@@ -67,11 +85,16 @@ function render(data) {
   $('supportText').textContent = money(summary.actionPlan.support);
   $('resistanceText').textContent = money(summary.actionPlan.resistance);
   $('stopText').textContent = money(summary.actionPlan.stopLoss);
+  $('supportText').title = summary.actionPlan.supportSource || 'คำนวณจากข้อมูลราคา';
+  $('resistanceText').title = summary.actionPlan.resistanceSource || 'คำนวณจากข้อมูลราคา';
+  $('stopText').title = summary.actionPlan.stopLossSource || 'คำนวณจากข้อมูลราคา';
   $('symbolBadge').textContent = data.tradingViewSymbol;
 
   renderTradingView(data.tradingViewSymbol);
   renderLinks(data.externalLinks);
   renderAgents(data.agents || []);
+  renderSmartMoney(data.smartMoney);
+  renderSocial(data.social);
   renderNews(data.news, data.dataSources);
   renderPrediction(prediction, data.dataSources);
   renderFactors(data.factors);
@@ -108,8 +131,90 @@ function renderTradingView(symbol) {
 
 function renderLinks(links) {
   $('externalSearchLinks').innerHTML = Object.entries(links).map(([name, url]) => {
-    const label = ({ googleNews:'ค้นข่าว Google', yahooFinance:'ข่าว Yahoo Finance', nasdaqNews:'ข่าว Nasdaq', secEdgar:'เอกสาร SEC', stocktwits:'Stocktwits' })[name] || name;
+    const label = ({ googleNews:'ค้นข่าว Google', yahooFinance:'ข่าว Yahoo Finance', nasdaqNews:'ข่าว Nasdaq', secEdgar:'เอกสาร SEC', stocktwits:'Stocktwits', xSearch:'ค้นหา X', facebookSearch:'ค้นหา Facebook', redditSearch:'ค้นหา Reddit', youtubeSearch:'ค้นหา YouTube' })[name] || name;
     return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${label}</a>`;
+  }).join('');
+}
+
+
+function renderSmartMoney(smart) {
+  if (!smart) {
+    setBadge($('smartMoneyStatus'), 'ยังไม่มีข้อมูล Smart Money', 'neutral');
+    $('smartIndicators').innerHTML = '<div class="smart-card"><div class="warn">ยังไม่มีข้อมูล Smart Money</div></div>';
+    return;
+  }
+  const interp = scoreMeaningFromBackend(smart.interpretation, smart.score);
+  setBadge($('smartMoneyStatus'), `${smart.score}/100 • ${interp.label}`, interp.tone || badgeClass(interp.label));
+  $('smartScoreText').textContent = `${smart.score}/100`;
+  $('smartScoreMeaning').textContent = `${interp.label}: ${interp.meaning}`;
+  $('smartVerdictText').textContent = smart.verdict || interp.label;
+  $('smartActionText').textContent = smart.action || interp.action || '-';
+  $('smartPriceText').textContent = money(smart.latest?.price);
+  $('smartDataText').textContent = `VWAP20 ${money(smart.latest?.vwap20)} • ATR ${(Number(smart.latest?.atrPct || 0) * 100).toFixed(2)}% • Volume ${Number(smart.latest?.volumeRatio || 0).toFixed(2)}x`;
+  $('smartSummaryText').innerHTML = `<strong>สรุป Smart Money:</strong> ${escapeHtml(smart.summary || interp.thaiSummary || '-')}`;
+  $('smartRisks').innerHTML = (smart.risks || []).map(x => `<li>${escapeHtml(x)}</li>`).join('') || '<li>ยังไม่มีความเสี่ยงเด่นชัด</li>';
+  $('smartOpportunities').innerHTML = (smart.opportunities || []).map(x => `<li>${escapeHtml(x)}</li>`).join('') || '<li>ยังไม่มีสัญญาณสะสมเด่นชัด</li>';
+  $('smartLimitations').innerHTML = `<strong>ข้อจำกัดข้อมูล:</strong> ${(smart.limitations || []).map(escapeHtml).join(' • ')}`;
+  $('smartIndicators').innerHTML = (smart.indicators || []).map(ind => {
+    const m = scoreMeaning(ind.score);
+    return `<article class="smart-card">
+      <div class="smart-head">
+        <div><h3>${escapeHtml(ind.name)}</h3><div class="small">${escapeHtml(ind.status || '-')}</div></div>
+        <div class="smart-score ${m.cls}">${Number(ind.score || 0)}/100</div>
+      </div>
+      <p class="news-snippet"><strong>แปลผล:</strong> ${escapeHtml(m.label)} — ${escapeHtml(ind.explanation || '')}</p>
+    </article>`;
+  }).join('') || '<div class="smart-card"><div class="warn">ไม่มีรายการอินดิเคเตอร์</div></div>';
+}
+
+function renderSocial(social) {
+  if (!social || !social.summary) {
+    setBadge($('socialStatus'), 'ยังไม่มีข้อมูล Social', 'neutral');
+    $('socialPlatforms').innerHTML = '<div class="social-platform-card"><div class="warn">ยังไม่มีข้อมูล Social Media</div></div>';
+    return;
+  }
+
+  const sum = social.summary;
+  setBadge($('socialStatus'), `${sum.dominantTone} • ${sum.buzzLevel}`, badgeClass(sum.dominantTone));
+  $('socialToneText').textContent = sum.dominantTone || '-';
+  $('socialScoreText').textContent = `Sentiment ${Number(sum.sentimentScore || 0).toFixed(3)} จาก -1 ถึง +1`;
+  $('socialHeatText').textContent = sum.buzzLevel || '-';
+  $('socialHeatScoreText').textContent = `Heat ${sum.heatScore || 0}/100`;
+  $('socialHypeText').textContent = sum.manipulationRisk || '-';
+  $('socialConfidenceText').textContent = `Hype risk ${sum.hypeRisk || 0}/100 • ความมั่นใจ ${sum.confidence || 0}%`;
+  $('socialSummaryText').innerHTML = `<strong>สรุป Social:</strong> ${escapeHtml(sum.thaiSummary || '-')}`;
+  $('socialRisks').innerHTML = (sum.risks || []).map(x => `<li>${escapeHtml(x)}</li>`).join('') || '<li>ยังไม่มีความเสี่ยงเด่นชัด</li>';
+  $('socialOpportunities').innerHTML = (sum.opportunities || []).map(x => `<li>${escapeHtml(x)}</li>`).join('') || '<li>ยังไม่มีโอกาสเด่นชัด</li>';
+
+  $('socialPlatforms').innerHTML = (social.platforms || []).map(platform => {
+    const links = (platform.links || []).map(link => `<a href="${escapeHtml(link.url)}" target="_blank" rel="noopener">${escapeHtml(link.label)}</a>`).join('');
+    const samples = (platform.sampleMentions || []).length
+      ? platform.sampleMentions.map(m => `
+        <li>
+          <a href="${escapeHtml(m.url || '#')}" target="_blank" rel="noopener">${escapeHtml(m.textTh || m.text)}</a>
+          <div class="small">${escapeHtml(m.source || m.author || platform.name)} • ${escapeHtml(m.sentimentLabelTh || '-')} • Heat ${m.heatScore || 0}/100 • ${escapeHtml(m.keyReasonTh || '')}</div>
+        </li>`).join('')
+      : '<li>ยังไม่พบข้อความสาธารณะที่ดึงได้โดยตรง ให้กดลิงก์เพื่อตรวจสอบโพสต์จริง</li>';
+    return `
+      <article class="social-platform-card">
+        <div class="social-platform-head">
+          <div>
+            <span class="badge info">${escapeHtml(platform.badge || 'Social')}</span>
+            <h3>${escapeHtml(platform.name)}</h3>
+            <div class="small">พบ ${platform.mentionCount || 0} รายการ • ความมั่นใจข้อมูล ${platform.confidence || 0}%</div>
+          </div>
+          <div class="social-score ${badgeClass(platform.status)}">${escapeHtml(platform.status || '-')}</div>
+        </div>
+        <div class="social-metrics">
+          <span>Sentiment ${Number(platform.sentimentScore || 0).toFixed(3)}</span>
+          <span>Heat ${platform.heatScore || 0}/100</span>
+          <span>Hype ${platform.hypeRisk || 0}/100</span>
+        </div>
+        <p class="news-snippet"><strong>วิเคราะห์:</strong> ${escapeHtml(platform.analysisTh || '-')}</p>
+        <p class="news-original"><strong>ข้อจำกัด:</strong> ${escapeHtml(platform.limitation || '-')}</p>
+        <ul class="social-mentions">${samples}</ul>
+        <div class="tool-links">${links}</div>
+      </article>`;
   }).join('');
 }
 
@@ -127,9 +232,10 @@ function renderNews(news, sources) {
         </div>
         <span class="badge ${cls}">${escapeHtml(a.sentimentLabelTh || label)}</span>
       </div>
-      <p class="news-snippet"><strong>แปลไทย:</strong> ${escapeHtml(a.snippetTh || a.snippet || 'ไม่มีคำอธิบายจากแหล่งข่าวนี้')}</p>
+      <p class="news-snippet"><strong>สรุปข่าวภาษาไทย:</strong> ${escapeHtml(a.snippetTh || 'ไม่มีคำอธิบายจากแหล่งข่าวนี้')}</p>
       <p class="news-snippet"><strong>เหตุผลผลกระทบ:</strong> ${escapeHtml(a.impactReasonTh || 'ต้องตรวจข่าวต้นทางเพิ่มเติม')}</p>
-      <p class="news-original"><strong>ต้นฉบับ:</strong> ${escapeHtml(a.titleOriginal || a.title)}</p>
+      <p class="news-snippet"><strong>ประเภทข่าว:</strong> ${escapeHtml(a.eventTypeTh || 'ข่าวทั่วไป')}</p>
+      <details class="news-original"><summary>ดูหัวข่าวต้นฉบับภาษาอังกฤษ</summary>${escapeHtml(a.titleOriginal || a.title)}</details>
     </div>`;
   }).join('');
 }
@@ -150,7 +256,7 @@ function renderAgents(agents) {
           <h3>${escapeHtml(agent.name)}</h3>
           <div class="small">${escapeHtml(agent.role)}</div>
         </div>
-        <div class="agent-score">${Number(agent.score || 0)}/100</div>
+        <div class="agent-score"><div>${Number(agent.score || 0)}/100</div><small>${escapeHtml(scoreMeaning(agent.score || 0).label)}</small></div>
       </div>
       <div class="thesis"><strong>สรุป:</strong> ${escapeHtml(agent.summary || agent.verdict || '-')}</div>
       <div class="agent-sections">

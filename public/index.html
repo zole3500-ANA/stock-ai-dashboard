@@ -17,7 +17,7 @@
           <div class="logo">🤖</div>
           <div>
             <h1>Stock AI Dashboard</h1>
-            <p class="subtitle">ระบบวิเคราะห์หุ้นภาษาไทย: ข่าวแปลไทย + 3 Agent + กราฟ + อินดิเคเตอร์ + ทำนายราคาวันถัดไป</p>
+            <p class="subtitle">ระบบวิเคราะห์หุ้นภาษาไทย: ข่าวแปลไทย + Social Media + 3 Agent + กราฟ + อินดิเคเตอร์ + ทำนายราคาวันถัดไป</p>
           </div>
         </div>
         <span class="badge info" id="updatedBadge">กำลังโหลด...</span>
@@ -35,7 +35,7 @@
 
       <div class="cards">
         <div class="card"><div class="label">Ticker</div><div class="big" id="tickerText">-</div><div class="small" id="companyText">-</div></div>
-        <div class="card"><div class="label">AI Score</div><div class="big" id="scoreText">-</div><div class="small">คะแนนรวมจากหลายมิติ</div></div>
+        <div class="card"><div class="label">AI Score</div><div class="big" id="scoreText">-</div><div class="small" id="scoreInterpretationText">แปลผลคะแนน: -</div></div>
         <div class="card"><div class="label">มุมมองแนวโน้ม</div><div class="big" id="biasText">-</div><div class="small">ทิศทางตามโมเดลระยะสั้น</div></div>
         <div class="card"><div class="label">ระดับความเสี่ยง</div><div class="big" id="riskText">-</div><div class="small">ประเมินจาก ATR และข่าว</div></div>
       </div>
@@ -73,8 +73,43 @@
       </div>
     </section>
 
+
+
     <section class="panel" style="margin-top:18px;">
-      <div class="panel-title"><h2>🌐 ข่าวสำคัญในสัปดาห์นี้ / ข่าวสำคัญอื่น ๆ (แปลไทย)</h2><span class="badge info" id="newsStatus">-</span></div>
+      <div class="panel-title"><h2>🏦 วิเคราะห์ Smart Money / เงินใหญ่</h2><span class="badge purple" id="smartMoneyStatus">-</span></div>
+      <div class="disclaimer" style="margin-top:0;">วิเคราะห์ร่องรอยเงินใหญ่จาก OHLCV และอินดิเคเตอร์สำคัญ เช่น OBV, CMF, MFI, CVD Proxy, VWAP, Up/Down Volume, Volume Profile Proxy, Accumulation/Distribution, Unusual Volume, Absorption และ Breakout Quality</div>
+      <div class="smart-summary-grid">
+        <div class="smart-summary-card"><div class="label">Smart Money Score</div><div class="big" id="smartScoreText">-</div><div class="small" id="smartScoreMeaning">-</div></div>
+        <div class="smart-summary-card"><div class="label">สถานะเงินใหญ่</div><div class="big" id="smartVerdictText">-</div><div class="small" id="smartActionText">-</div></div>
+        <div class="smart-summary-card"><div class="label">ข้อมูลล่าสุด</div><div class="big mono" id="smartPriceText">-</div><div class="small" id="smartDataText">-</div></div>
+      </div>
+      <div class="thesis" id="smartSummaryText">กำลังโหลด Smart Money Analysis...</div>
+      <div class="smart-grid" id="smartIndicators"><div class="smart-card"><div class="loading">กำลังคำนวณ Smart Money indicators...</div></div></div>
+      <div class="social-risk-grid">
+        <div class="social-box"><h3>ความเสี่ยงจากเงินใหญ่</h3><ul id="smartRisks"></ul></div>
+        <div class="social-box"><h3>โอกาส / สัญญาณสะสม</h3><ul id="smartOpportunities"></ul></div>
+      </div>
+      <div class="disclaimer" id="smartLimitations">หมายเหตุ: ไม่มีข้อมูล order book/dark pool/block trade แบบ real-time จึงใช้ข้อมูลราคาและ volume รายวันเป็น proxy</div>
+    </section>
+
+
+    <section class="panel" style="margin-top:18px;">
+      <div class="panel-title"><h2>📣 วิเคราะห์การพูดคุยใน Social Media</h2><span class="badge info" id="socialStatus">-</span></div>
+      <div class="disclaimer" style="margin-top:0;">วิเคราะห์กระแสจาก Facebook, X, Reddit, Stocktwits และแหล่งอื่นที่สำคัญ เช่น YouTube, Google Trends และเว็บบอร์ด โดยแสดงผลเป็นภาษาไทย พร้อมประเมิน sentiment, ความร้อนแรง, และความเสี่ยงการปั่นกระแส</div>
+      <div class="social-summary-grid">
+        <div class="social-summary-card"><div class="label">โทนรวม Social</div><div class="big" id="socialToneText">-</div><div class="small" id="socialScoreText">-</div></div>
+        <div class="social-summary-card"><div class="label">ความร้อนแรง</div><div class="big" id="socialHeatText">-</div><div class="small" id="socialHeatScoreText">-</div></div>
+        <div class="social-summary-card"><div class="label">ความเสี่ยงปั่นกระแส</div><div class="big" id="socialHypeText">-</div><div class="small" id="socialConfidenceText">-</div></div>
+      </div>
+      <div class="thesis" id="socialSummaryText">กำลังโหลด Social Media Intelligence...</div>
+      <div class="social-platform-grid" id="socialPlatforms"><div class="social-platform-card"><div class="loading">กำลังโหลดข้อมูล social...</div></div></div>
+      <div class="social-risk-grid">
+        <div class="social-box"><h3>ความเสี่ยงที่ต้องระวัง</h3><ul id="socialRisks"></ul></div>
+        <div class="social-box"><h3>โอกาส / สัญญาณบวก</h3><ul id="socialOpportunities"></ul></div>
+      </div>
+    </section>
+    <section class="panel" style="margin-top:18px;">
+      <div class="panel-title"><h2>🌐 ข่าวสำคัญในสัปดาห์นี้ / ข่าวสำคัญอื่น ๆ (สรุปและแปลไทยทั้งหมด)</h2><span class="badge info" id="newsStatus">-</span></div>
       <div class="disclaimer" style="margin-top:0;">ระบบค้นข่าวจาก GDELT / Google News RSS แล้วแปลหัวข่าว/สรุปข่าวเป็นไทย พร้อมจัดอันดับจากผลกระทบและ sentiment เช่น ผลประกอบการ เพิ่มทุน dilution สัญญา SEC delisting คดีความ และนักวิเคราะห์</div>
       <div class="tool-links" id="externalSearchLinks"></div>
       <div class="news-list" id="newsList"><div class="news-item"><div class="loading">กำลังโหลดข่าว...</div></div></div>
@@ -99,14 +134,14 @@
     </section>
 
     <section class="panel" style="margin-top:18px;">
-      <div class="panel-title"><h2>ตารางวิเคราะห์ 11 มิติ</h2><span class="badge info">วิเคราะห์หลายมิติ</span></div>
+      <div class="panel-title"><h2>ตารางวิเคราะห์หลายมิติ</h2><span class="badge info">วิเคราะห์หลายมิติ</span></div>
       <table>
         <thead><tr><th>#</th><th>มิติ</th><th>สถานะ</th><th>สรุปภาษาชาวบ้าน</th></tr></thead>
         <tbody id="factorBody"></tbody>
       </table>
     </section>
 
-    <div class="footer">Stock AI Dashboard • วิเคราะห์ภาษาไทย + ข่าวแปลไทย + 3 Agent + ทำนายราคาวันถัดไป</div>
+    <div class="footer">Stock AI Dashboard • วิเคราะห์ภาษาไทย + ข่าวแปลไทย + Social Media + 3 Agent + ทำนายราคาวันถัดไป</div>
   </main>
   <script src="https://s3.tradingview.com/tv.js"></script>
   <script type="module" src="/app.js"></script>

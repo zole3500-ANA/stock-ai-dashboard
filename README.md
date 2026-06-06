@@ -17,6 +17,14 @@
 
 หมายเหตุ: ชื่อ Agent เป็น persona ภายในระบบ ไม่ได้เรียก API ของ Gemini หรือ Grok จริง ถ้าต้องการให้ใช้ LLM จริงสามารถต่อ Gemini/OpenAI API เพิ่มภายหลังได้
 
+
+## อัปเดต v1.5 — แก้แผนเทคนิคของป๊อก
+
+- ปรับเมนู **ป๊อก (สายเทคนิค) > 3) แผนจุดเข้า จุด Follow จุดลดความเสี่ยง และ Stop-loss** ให้ใช้ข้อมูล `tradePlan` ที่คำนวณจากราคาจริง
+- เพิ่มการทวนสอบว่า `Stop-loss` ต้องต่ำกว่าราคาล่าสุดและแนวรับหลัก ไม่ใช้ค่าผิดด้านของราคา
+- เพิ่มจุด `reclaim`, `confirmation`, `follow`, `reduce risk`, `TP1`, `TP2`, และ `invalidation`
+- เพิ่ม Risk/Reward ถึง TP1 โดยอิง ATR และแนวรับ/แนวต้าน dynamic
+
 ## ฟีเจอร์หลัก
 
 - กรอก Ticker เช่น `BURU`, `IREN`, `NVDA`, `AAPL`
@@ -25,10 +33,16 @@
 - Backend API ด้วย Node.js ไม่ต้องใช้ API key
 - ดึงราคาย้อนหลังจาก Stooq และ fallback ไป Yahoo Chart API
 - ดึงข่าวจาก GDELT และ fallback ไป Google News RSS
+- แปลงหัวข้อข่าวและสรุปข่าวเป็นภาษาไทยทั้งหมด พร้อมเหตุผลผลกระทบต่อราคา
+- จัดประเภทข่าว เช่น เพิ่มทุน/เสนอขายหุ้น, สัญญา, ผลประกอบการ, ความเสี่ยงเกณฑ์ตลาด, คดีความ, นักวิเคราะห์
 - แปลหัวข่าวและสรุปข่าวเป็นไทยด้วยตัวแปลศัพท์การเงินในระบบ
 - จัดอันดับข่าวตามผลกระทบ เช่น `earnings`, `offering`, `dilution`, `contract`, `SEC`, `delisting`, `lawsuit`, `analyst`
-- วิเคราะห์ 11 มิติ
+- วิเคราะห์ Social Media จาก Facebook, X, Reddit, Stocktwits และแหล่งอื่นที่สำคัญ
+- ประเมิน sentiment, heat score, hype/pump risk และความมั่นใจของข้อมูล social
+- วิเคราะห์หลายมิติ
 - ทำนายราคาวันถัดไปด้วย heuristic model
+- แปลผลคะแนน เช่น 26/100 = อ่อน/ควรระวัง พร้อมคำอธิบายและแนวทางปฏิบัติ
+- เพิ่มเมนู Smart Money วิเคราะห์เงินใหญ่จาก OBV, CMF, MFI, CVD Proxy, VWAP, Up/Down Volume, Volume Profile Proxy, Accumulation/Distribution, Unusual Volume, Absorption และ Breakout Quality
 - อธิบายเหตุผลละเอียด เช่น แนวโน้ม, โมเมนตัม, RSI, Volume, MACD, คะแนนข่าว, AI Score, Risk Penalty
 - มีกรณีดี / กรณีหลัก / กรณีแย่
 - มีกรอบราคาคาดการณ์และความมั่นใจ
@@ -78,6 +92,12 @@ GET /api/news?symbol=BURU&days=7
 
 ```text
 GET /api/history?symbol=BURU&days=90
+```
+
+### วิเคราะห์ Social Media
+
+```text
+GET /api/social?symbol=BURU&days=7
 ```
 
 ### ตรวจสถานะ
@@ -136,6 +156,23 @@ npm start
 node server.js
 ```
 
+## Social Media Intelligence
+
+ระบบเพิ่มการวิเคราะห์การพูดคุยใน social media โดยแบ่งเป็น:
+
+- **Facebook**: ใช้ลิงก์ค้นหาและข้อมูลที่ index ได้บนเว็บ เพราะโพสต์ Facebook ต้องใช้ Graph API/สิทธิ์เพจหรือกลุ่ม
+- **X / Twitter**: ให้ลิงก์ค้นหา cashtag เช่น `$BURU` และใช้ข้อมูลที่ค้นพบจากเว็บเท่าที่เปิดได้ เพราะ X API ต้องใช้สิทธิ์เพิ่มเติม
+- **Reddit**: ดึง public Reddit search เพื่อตรวจการพูดคุยในชุมชนรายย่อย/หุ้นซิ่ง
+- **Stocktwits**: ดึง public symbol stream เพราะเป็นแหล่งพูดคุยหุ้นโดยตรง
+- **อื่น ๆ สำคัญ**: YouTube, Google Trends และเว็บบอร์ด/ฟอรัม เพื่อดูความร้อนแรงของกระแสรายย่อย
+
+คะแนนที่แสดง:
+
+- **Sentiment Score**: บวก/ลบของการพูดคุย
+- **Heat Score**: ความร้อนแรงของกระแส
+- **Hype Risk**: ความเสี่ยงปั่นกระแส เช่น moon, squeeze, all-in, pump, rocket
+- **Confidence**: ความมั่นใจของข้อมูล โดย Facebook/X จะต่ำกว่า Reddit/Stocktwits หากยังไม่ได้เชื่อม API โดยตรง
+
 ## แนวคิดโมเดลทำนายวันถัดไป
 
 ระบบไม่ได้เดาราคาแบบสุ่ม แต่ใช้คะแนนรวมจากหลายปัจจัย:
@@ -158,3 +195,42 @@ node server.js
 - หุ้น micro-cap มีความเสี่ยงสูงมาก โดยเฉพาะ dilution, reverse split, delisting, low liquidity
 - ควรตรวจข่าวก่อนตลาดเปิดเสมอ
 - ระบบนี้เป็น decision-support tool ไม่ใช่ financial advisor
+
+
+## อัปเดต v1.2
+
+- เปลี่ยนแนวรับ แนวต้าน และจุดตัดขาดทุนจากค่าคงที่ เป็นการคำนวณอัตโนมัติจากข้อมูลราคาล่าสุด
+- ใช้ recent swing low/high, low/high 20 วัน, low/high 60 วัน, MA20, MA50, VWAP20 และ ATR ประกอบ
+- เพิ่มเหตุผลว่าระดับราคามาจากแหล่งคำนวณใด เพื่อป้องกันการแสดงราคาผิดจาก profile เก่า
+
+
+## อัปเดต v1.4
+
+- ปรับส่วน “ข่าวสำคัญในสัปดาห์นี้ / ข่าวสำคัญอื่น ๆ” ให้แสดงเป็นภาษาไทยมากขึ้น
+- สร้างหัวข้อข่าวภาษาไทยแบบสรุปเหตุการณ์ ไม่ใช้แค่แปลคำต่อคำ
+- เพิ่มประเภทข่าวภาษาไทย เช่น เพิ่มทุน/เสนอขายหุ้น, สัญญา/คำสั่งซื้อ, ผลประกอบการ, ความเสี่ยงเกณฑ์ตลาด, คดีความ, แรงขายชอร์ต
+- เพิ่มสรุปข่าวภาษาไทยพร้อมเหตุผลว่าข่าวนั้นมีผลต่อราคาหุ้นอย่างไร
+- ซ่อนหัวข่าวต้นฉบับไว้ในปุ่ม “ดูหัวข่าวต้นฉบับภาษาอังกฤษ” เพื่อให้หน้าเว็บอ่านง่ายขึ้น
+
+
+## v1.6 Score Interpretation + Smart Money
+
+เพิ่มการแปลผลคะแนนทุกจุด เช่น `26/100` ไม่แสดงแค่ตัวเลข แต่แปลเป็นระดับ เช่น “อ่อน / ควรระวัง” พร้อมความหมายและแนวทางปฏิบัติ
+
+เพิ่มเมนู **Smart Money / เงินใหญ่** ครอบคลุม:
+
+- OBV
+- CMF20
+- MFI14
+- CVD Proxy
+- VWAP20
+- Up/Down Volume
+- Accumulation/Distribution Line
+- Unusual Volume
+- Volume Profile Proxy
+- Breakout Quality
+- Liquidity / Float Risk Proxy
+- Gap / Trap Risk
+- Absorption / Shakeout
+
+หมายเหตุ: ระบบไม่มีข้อมูล dark pool, order book หรือ block trade แบบ real-time จึงใช้ OHLCV รายวันเป็น proxy และแสดงข้อจำกัดข้อมูลไว้ในหน้าเว็บ

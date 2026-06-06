@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { analyzeSymbol } from './lib/analyzer.js';
 import { fetchNews } from './lib/news.js';
 import { fetchPriceHistory } from './lib/stockData.js';
+import { fetchSocialAnalysis } from './lib/social.js';
 import { jsonResponse, normalizeTicker } from './lib/utils.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -45,6 +46,13 @@ const server = createServer(async (req, res) => {
       const days = Number(url.searchParams.get('days') || 7);
       const news = await fetchNews(symbol, days);
       return jsonResponse(res, 200, news);
+    }
+
+    if (url.pathname === '/api/social') {
+      const symbol = normalizeTicker(url.searchParams.get('symbol'));
+      const days = Number(url.searchParams.get('days') || 7);
+      const social = await fetchSocialAnalysis(symbol, days);
+      return jsonResponse(res, 200, social);
     }
 
     if (url.pathname === '/api/history') {

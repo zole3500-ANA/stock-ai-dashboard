@@ -28,4 +28,7 @@ test('nextDayPrediction returns a logical range', () => {
   assert.ok(prediction.rangeLow < prediction.rangeHigh);
   assert.ok(prediction.confidence >= 0 && prediction.confidence <= 100);
   assert.ok(prediction.reasoning.length >= 8);
+  assert.ok(prediction.levels.support > 0);
+  assert.ok(prediction.levels.resistance > prediction.levels.support);
+  assert.ok(prediction.levels.stopLoss < prediction.levels.support);
 });
