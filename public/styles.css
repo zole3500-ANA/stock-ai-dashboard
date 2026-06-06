@@ -29,3 +29,20 @@ details.news-original summary {
 
 
 .agent-score{grid-template-rows:1fr auto;padding:8px;text-align:center}.agent-score small{display:block;margin-top:2px;color:#b9dcff;font-size:.72rem;line-height:1.2;font-weight:800}.smart-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}.smart-summary-card{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:16px;padding:14px}.smart-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}.smart-card{border:1px solid var(--line);background:rgba(255,255,255,.045);border-radius:18px;padding:16px}.smart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.smart-score{min-width:78px;text-align:center;border-radius:14px;padding:10px 12px;border:1px solid var(--line);font-weight:950}.smart-score.bullish{color:#9df2c2;background:rgba(53,208,127,.12)}.smart-score.neutral{color:#ffe0a0;background:rgba(255,200,87,.10)}.smart-score.bearish{color:#ffb0b9;background:rgba(255,82,99,.12)}#scoreInterpretationText{line-height:1.35;color:#cfe0f4}@media(max-width:1100px){.smart-grid,.smart-summary-grid{grid-template-columns:1fr}}
+
+
+/* v1.7 Decision Matrix */
+.table-scroll{width:100%;overflow-x:auto;padding-bottom:6px}
+.decision-table{min-width:1320px}
+.decision-table th{white-space:nowrap}
+.decision-table td{font-size:.9rem;line-height:1.45}
+.decision-table td:nth-child(2){min-width:170px}
+.decision-table td:nth-child(9),.decision-table td:nth-child(10),.decision-table td:nth-child(11){min-width:240px}
+.factor-score{display:inline-flex;align-items:center;justify-content:center;min-width:72px;padding:7px 10px;border-radius:14px;border:1px solid var(--line);font-weight:950}
+.factor-score.bullish{color:#9df2c2;background:rgba(53,208,127,.13);border-color:rgba(53,208,127,.24)}
+.factor-score.neutral{color:#ffe0a0;background:rgba(255,200,87,.12);border-color:rgba(255,200,87,.24)}
+.factor-score.bearish{color:#ffb0b9;background:rgba(255,82,99,.12);border-color:rgba(255,82,99,.24)}
+@media(max-width:720px){
+  .decision-table{min-width:1180px}
+  .decision-table td{font-size:.86rem}
+}

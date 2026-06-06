@@ -1,7 +1,7 @@
 {
   "name": "stock-ai-dashboard",
-  "version": "1.6.0",
-  "description": "Thai-first stock dashboard with score interpretation, smart money analysis, Thai news, social media intelligence, 3-agent analysis, and next-day prediction heuristic.",
+  "version": "1.7.0",
+  "description": "Thai-first stock dashboard with complete decision matrix, score interpretation, smart money, Thai news, social media intelligence, 3-agent analysis, and next-day prediction heuristic.",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -29,7 +29,13 @@
     "obv",
     "cmf",
     "mfi",
-    "vwap"
+    "vwap",
+    "decision-matrix",
+    "risk-reward",
+    "dilution-risk",
+    "sec-filings",
+    "liquidity-risk",
+    "short-squeeze"
   ],
   "author": "zole3500-ANA + ChatGPT",
   "license": "MIT"

@@ -134,11 +134,28 @@
     </section>
 
     <section class="panel" style="margin-top:18px;">
-      <div class="panel-title"><h2>ตารางวิเคราะห์หลายมิติ</h2><span class="badge info">วิเคราะห์หลายมิติ</span></div>
-      <table>
-        <thead><tr><th>#</th><th>มิติ</th><th>สถานะ</th><th>สรุปภาษาชาวบ้าน</th></tr></thead>
-        <tbody id="factorBody"></tbody>
-      </table>
+      <div class="panel-title"><h2>ตารางวิเคราะห์หลายมิติ</h2><span class="badge info">Decision Matrix</span></div>
+      <div class="disclaimer" style="margin-top:0;">ตารางนี้เพิ่มคะแนนรายมิติ น้ำหนัก ความมั่นใจ ผลต่อราคา ระยะเวลา สิ่งที่ต้องจับตา และ Action เพื่อให้ใช้เป็นระบบช่วยตัดสินใจ ไม่ใช่แค่ตารางสรุปข้อมูล</div>
+      <div class="table-scroll">
+        <table class="decision-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>มิติ</th>
+              <th>คะแนน</th>
+              <th>สถานะ</th>
+              <th>น้ำหนัก</th>
+              <th>ความมั่นใจ</th>
+              <th>ผลต่อราคา</th>
+              <th>ระยะเวลา</th>
+              <th>สรุปภาษาชาวบ้าน</th>
+              <th>สิ่งที่ต้องจับตา</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="factorBody"></tbody>
+        </table>
+      </div>
     </section>
 
     <div class="footer">Stock AI Dashboard • วิเคราะห์ภาษาไทย + ข่าวแปลไทย + Social Media + 3 Agent + ทำนายราคาวันถัดไป</div>

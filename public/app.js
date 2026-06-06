@@ -302,7 +302,23 @@ function componentName(key) {
 }
 
 function renderFactors(factors) {
-  $('factorBody').innerHTML = factors.map(f => `<tr><td>${f.index}</td><td><strong>${escapeHtml(f.dimension)}</strong></td><td><span class="badge ${badgeClass(f.status)}">${escapeHtml(f.status)}</span></td><td>${escapeHtml(f.explanation)}</td></tr>`).join('');
+  $('factorBody').innerHTML = factors.map(f => {
+    const score = Number(f.score || 0);
+    const scoreCls = score >= 70 ? 'bullish' : score >= 40 ? 'neutral' : 'bearish';
+    return `<tr>
+      <td>${f.index}</td>
+      <td><strong>${escapeHtml(f.dimension)}</strong></td>
+      <td><span class="factor-score ${scoreCls}">${escapeHtml(f.scoreText || `${score}/100`)}</span></td>
+      <td><span class="badge ${badgeClass(f.status)}">${escapeHtml(f.status)}</span></td>
+      <td>${escapeHtml(f.weight || '-')}</td>
+      <td>${escapeHtml(f.confidence || '-')}</td>
+      <td>${escapeHtml(f.priceImpact || '-')}</td>
+      <td>${escapeHtml(f.timeframe || '-')}</td>
+      <td>${escapeHtml(f.explanation || '-')}</td>
+      <td>${escapeHtml(f.watch || '-')}</td>
+      <td><strong>${escapeHtml(f.action || '-')}</strong></td>
+    </tr>`;
+  }).join('');
 }
 
 $('analyseBtn').addEventListener('click', analyze);
