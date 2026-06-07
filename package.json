@@ -1,7 +1,7 @@
 {
   "name": "stock-ai-dashboard",
-  "version": "2.1.2",
-  "description": "Stock AI Dashboard with Stock/Bitcoin mode and Android LINE WebView mobile readability polish.",
+  "version": "2.2.0",
+  "description": "Pixel Agents Pro compact dashboard layout with clickable detail modal, Stock/Bitcoin mode, and mobile readability.",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -56,7 +56,11 @@
     "asset-selector",
     "android-mobile",
     "line-webview",
-    "mobile-readability"
+    "mobile-readability",
+    "pro-layout",
+    "detail-modal",
+    "pixel-agents-dashboard",
+    "compact-ui"
   ],
   "author": "zole3500-ANA + ChatGPT",
   "license": "MIT"

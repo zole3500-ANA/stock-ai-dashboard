@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=2.1.2" />
+  <link rel="stylesheet" href="/styles.css?v=2.2.0" />
 </head>
 <body>
   <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-label="เปิดเมนู">☰</button>
@@ -46,8 +46,8 @@
           </svg>
         </div>
         <div class="sidebar-brand-text">
-          <div class="sidebar-title">Stock AI</div>
-          <div class="sidebar-subtitle">Pixel Agent v2.1.2</div>
+          <div class="sidebar-title">PIXEL AGENTS</div>
+          <div class="sidebar-subtitle">STOCK AI DASHBOARD</div>
         </div>
         <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="ยุบหรือขยายเมนู" title="ยุบ/ขยายเมนู">⇤</button>
       </div>
@@ -102,7 +102,148 @@
       </section>
     </aside>
     <main class="wrap content-area">
-    <section class="hero" id="overview">
+
+    <section class="pro-dashboard" id="overview-pro">
+      <div class="pro-topbar">
+        <div class="pro-search-card">
+          <div class="pro-search-icon">⌕</div>
+          <div class="pro-select-stack">
+            <select id="proAssetTypeSelect" title="ประเภทสินทรัพย์">
+              <option value="stock">หุ้น</option>
+              <option value="crypto">Bitcoin / Crypto</option>
+            </select>
+            <small id="proAssetHint">Stock AI</small>
+          </div>
+          <input id="proTickerInput" value="BURU" placeholder="BURU, IREN, NVDA, BTC" />
+          <select id="proMarketSelect" title="ตลาด">
+            <option value="AMEX">AMEX</option>
+            <option value="NASDAQ">NASDAQ</option>
+            <option value="NYSE">NYSE</option>
+            <option value="CRYPTO">CRYPTO</option>
+          </select>
+        </div>
+        <div class="pro-price-card">
+          <div class="pro-ticker-row">
+            <strong id="proTickerTitle">BURU</strong>
+            <span id="proCompanyMini">-</span>
+          </div>
+          <div class="pro-price-row">
+            <span class="pro-price" id="proLastPrice">$0.0000</span>
+            <span class="pro-change" id="proChangeText">-</span>
+          </div>
+          <div class="pro-market-time"><span class="live-dot"></span><span id="proUpdatedMini">กำลังโหลด...</span></div>
+        </div>
+        <div class="pro-action-strip">
+          <div class="mini-status-card">
+            <small>MARKET</small>
+            <strong id="proMarketRegime">-</strong>
+          </div>
+          <div class="mini-status-card">
+            <small>SECTOR</small>
+            <strong id="proSectorMood">-</strong>
+          </div>
+          <button class="pro-icon-btn" type="button" data-detail="watchlist">⭐ WATCHLIST</button>
+          <button class="pro-icon-btn compact" type="button" data-detail="share">⌘</button>
+          <button class="pro-primary-btn" id="proAnalyseBtn" type="button">สรุปภาพรวม AI</button>
+        </div>
+      </div>
+
+      <div class="pro-summary-grid">
+        <article class="pro-panel pro-ai-score-card" data-detail="score">
+          <div class="pro-panel-title">AI SCORE (ภาพรวม)</div>
+          <div class="pro-score-flex">
+            <div class="pro-donut"><span id="proScoreText">-</span><small>/100</small></div>
+            <div>
+              <h2 id="proScoreLabel">-</h2>
+              <p id="proScoreMeaning">-</p>
+              <button class="pro-detail-btn" type="button" data-detail="score">ดูรายละเอียดคะแนน ›</button>
+            </div>
+          </div>
+        </article>
+        <article class="pro-panel pro-interpret-card" data-detail="interpretation">
+          <div class="pro-panel-title">แปลผลคะแนน</div>
+          <p id="proScoreExplain">-</p>
+          <button class="pro-detail-btn" type="button" data-detail="interpretation">ดูหลักคิด ›</button>
+        </article>
+        <article class="pro-panel pro-bias-card" data-detail="prediction">
+          <div class="pro-panel-title">แนวโน้ม AI</div>
+          <h2 id="proBiasText">-</h2>
+          <div class="pro-bars-mini"><i></i><i></i><i></i><i></i><i></i></div>
+          <p id="proBiasExplain">-</p>
+        </article>
+        <article class="pro-panel pro-confidence-card" data-detail="data">
+          <div class="pro-panel-title">ความมั่นใจของข้อมูล</div>
+          <div class="pro-arc"><span id="proConfidenceText">-</span></div>
+          <p id="proConfidenceLevel">-</p>
+        </article>
+        <article class="pro-panel pro-last-card" data-detail="price">
+          <div class="pro-panel-title">ราคาปิดล่าสุด</div>
+          <h2 id="proClosePrice">-</h2>
+          <p id="proRangeMini">-</p>
+        </article>
+      </div>
+
+      <div class="pro-agent-grid" id="proAgentCards"></div>
+
+      <section class="pro-panel pro-matrix-panel">
+        <div class="pro-section-head">
+          <h2>ตารางวิเคราะห์หลายมิติ (Multi-Factor Decision Matrix)</h2>
+          <button class="pro-detail-btn" type="button" data-detail="matrix">ดูรายละเอียดทั้งหมด</button>
+        </div>
+        <div class="pro-table-wrap">
+          <table class="pro-matrix-table">
+            <thead>
+              <tr>
+                <th>#</th><th>มิติ</th><th>คะแนน</th><th>สถานะ</th><th>น้ำหนัก</th><th>ความมั่นใจ</th><th>ผลต่อราคา</th><th>ระยะเวลา</th><th>สรุปภาษาชาวบ้าน</th><th>สิ่งที่ต้องจับตา</th><th>Action ที่ควรทำ</th>
+              </tr>
+            </thead>
+            <tbody id="proFactorBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="pro-bottom-grid">
+        <article class="pro-panel pro-mini-card" data-detail="trade">
+          <h3>แผนจุดเข้า-ออก (ป๊อก)</h3>
+          <div id="proTradePlan" class="pro-mini-content">-</div>
+          <button class="pro-detail-btn full" type="button" data-detail="trade">ดูแผนอย่างละเอียด</button>
+        </article>
+        <article class="pro-panel pro-mini-card" data-detail="smart">
+          <h3>วิเคราะห์ Smart Money</h3>
+          <div id="proSmartSummary" class="pro-mini-content">-</div>
+          <button class="pro-detail-btn full" type="button" data-detail="smart">ดูรายละเอียด Smart Money</button>
+        </article>
+        <article class="pro-panel pro-mini-card" data-detail="news">
+          <h3>สรุปข่าวสำคัญ (แปลไทย)</h3>
+          <div id="proNewsSummary" class="pro-mini-content">-</div>
+          <button class="pro-detail-btn full" type="button" data-detail="news">ดูข่าวทั้งหมด</button>
+        </article>
+        <article class="pro-panel pro-mini-card" data-detail="social">
+          <h3>Social Sentiment</h3>
+          <div id="proSocialSummary" class="pro-mini-content">-</div>
+          <button class="pro-detail-btn full" type="button" data-detail="social">ดูรายละเอียด Social</button>
+        </article>
+        <article class="pro-panel pro-mini-card" data-detail="catalyst">
+          <h3>Catalyst / ปฏิทินเหตุการณ์</h3>
+          <div id="proCatalystSummary" class="pro-mini-content">-</div>
+          <button class="pro-detail-btn full" type="button" data-detail="catalyst">ดูปฏิทินทั้งหมด</button>
+        </article>
+      </div>
+    </section>
+
+    <div class="pro-modal" id="proDetailModal" aria-hidden="true">
+      <div class="pro-modal-backdrop" data-close-detail></div>
+      <div class="pro-modal-card" role="dialog" aria-modal="true">
+        <div class="pro-modal-head">
+          <h2 id="proModalTitle">รายละเอียด</h2>
+          <button type="button" class="pro-modal-close" data-close-detail>×</button>
+        </div>
+        <div id="proModalBody" class="pro-modal-body"></div>
+      </div>
+    </div>
+
+
+    <section class="hero legacy-hero" id="overview">
       <div class="topbar">
         <div class="brand">
           <div class="logo">🤖</div>
@@ -114,7 +255,7 @@
         <span class="badge info" id="updatedBadge">กำลังโหลด...</span>
       </div>
 
-      <div class="version-notice">v2.1.2 ปรับมือถือ Android/LINE: Overview → กราฟ + คำตัดสิน → Pixel Agent Command Room → Prediction → 3 Agent → Decision Matrix → Smart Money → ข่าว → Social Media</div>
+      <div class="version-notice">v2.2.0 Pro Layout: Overview → กราฟ + คำตัดสิน → Pixel Agent Command Room → Prediction → 3 Agent → Decision Matrix → Smart Money → ข่าว → Social Media</div>
 
       <div class="line-mobile-note">📱 ปรับโหมดอ่านบนมือถือ/LINE: ตัวอักษรใหญ่ขึ้น การ์ดโปร่งขึ้น ตารางหลายมิติแปลงเป็นการ์ดอ่านง่ายบนจอเล็ก</div>
 
@@ -288,12 +429,12 @@
       </div>
     </section>
 
-    <div class="footer">Stock AI Dashboard • v2.1.2 Android LINE Mobile Polish • ลำดับใหม่: Overview → Chart → Command Room → Prediction → 3 Agent → Decision Matrix → Smart Money → ข่าว → Social</div>
+    <div class="footer">Pixel Agents Stock AI Dashboard v2.2.0 • Pro Compact Layout • ลำดับใหม่: Overview → Chart → Command Room → Prediction → 3 Agent → Decision Matrix → Smart Money → ข่าว → Social</div>
 
   </main>
   </div>
   <button class="scroll-top" id="scrollTopBtn" type="button" aria-label="กลับขึ้นด้านบน">↑</button>
   <script src="https://s3.tradingview.com/tv.js"></script>
-  <script type="module" src="/app.js?v=2.1.2"></script>
+  <script type="module" src="/app.js?v=2.2.0"></script>
 </body>
 </html>

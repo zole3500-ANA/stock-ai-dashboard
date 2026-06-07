@@ -399,6 +399,21 @@ DOGE-USD
 - เพิ่ม cache busting เป็น `?v=2.1.2`
 
 
+
+## อัปเดต v2.2.0: Pixel Agents Pro Compact Layout
+
+เวอร์ชันนี้ปรับหน้าตาให้ใกล้เคียง mockup ที่ส่งมา โดยทำเป็น dashboard แบบ compact/pro:
+
+- Sidebar ซ้ายแนว Pixel Agents
+- Topbar ค้นหา ticker + ราคา + market/sector status + ปุ่มสรุปภาพรวม AI
+- การ์ดสรุป AI Score, แปลผลคะแนน, แนวโน้ม AI, ความมั่นใจ และราคาปิดล่าสุด
+- แถว Agent Cards แบบ compact จำนวน 6 ใบ
+- ตาราง Multi-Factor Decision Matrix แบบ compact
+- แถวล่างเป็นการ์ด แผนจุดเข้าออก, Smart Money, ข่าว, Social, Catalyst
+- เพิ่ม modal รายละเอียด: กดปุ่ม `ดูรายละเอียด` หรือกดแถวในตาราง เพื่อเปิดรายละเอียดเชิงลึก
+- เก็บ logic หุ้น/Bitcoin จาก v2.1.x ไว้ครบ
+
+
 ## วิธีรันในเครื่อง
 
 ```bash
