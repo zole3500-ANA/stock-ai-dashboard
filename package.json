@@ -1,7 +1,7 @@
 {
   "name": "stock-ai-dashboard",
-  "version": "2.2.6",
-  "description": "Pixel Agents Pro dashboard with colored interpretation, last price, and data confidence cards.",
+  "version": "2.2.7",
+  "description": "Pixel Agents Pro dashboard with semantic green/yellow/red color cues across clickable bottom cards and all detail modals.",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -77,7 +77,10 @@
     "working-watchlist",
     "colored-score-cards",
     "confidence-card-colors",
-    "price-card-colors"
+    "price-card-colors",
+    "semantic-colors",
+    "full-semantic-colors",
+    "colored-modals"
   ],
   "author": "zole3500-ANA + ChatGPT",
   "license": "MIT"

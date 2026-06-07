@@ -732,6 +732,31 @@ function formatDateTimeShort(value) {
 
 
 
+
+function aggregateTone(values = []) {
+  const tones = (values || []).filter(Boolean);
+  if (!tones.length) return 'neutral';
+  const score = tones.reduce((acc, tone) => {
+    if (tone === 'positive') return acc + 1;
+    if (tone === 'negative') return acc - 1;
+    return acc;
+  }, 0);
+  if (score > 0) return 'positive';
+  if (score < 0) return 'negative';
+  return 'neutral';
+}
+
+function toneClass(tone) {
+  return `tone-${tone || 'neutral'}`;
+}
+
+function normalizeScoreTone(raw) {
+  if (raw === 'bullish') return 'positive';
+  if (raw === 'bearish') return 'negative';
+  return 'neutral';
+}
+
+
 function proToneByScore(score) {
   const n = Number(score || 0);
   if (n >= 60) return 'positive';
@@ -1025,6 +1050,7 @@ function renderProBottom(data) {
   const smart = data.smartMoney || {};
   const news = data.news || [];
   const social = data.social?.summary || {};
+  const tradeTone = proToneByChange(p.predictedReturn ?? p.technical?.dayChange ?? 0);
   setHtml('proTradePlan', `
     <ul class="pro-bullet-list trade-plan-color-list">
       <li><span class="trade-label entry">จุดเข้า</span><strong class="trade-price entry">${money(plan.confirmationLevel || p.levels?.resistance)}</strong></li>
@@ -1056,10 +1082,17 @@ function renderProBottom(data) {
       ${coloredInsightRow('Hype Risk', `${social.hypeRisk || 0}/100`, Number(social.hypeRisk || 0) >= 65 ? 'negative' : Number(social.hypeRisk || 0) <= 35 ? 'positive' : 'neutral')}
     </div>`);
   const catalysts = buildCatalystEvents(data);
+  const newsAggregateTone = aggregateTone(news.slice(0,4).map(newsTone));
+  const catalystTone = aggregateTone(catalysts.map(x => x.tone));
   setHtml('proCatalystSummary', `
     <div class="catalyst-list compact">
       ${catalysts.slice(0, 4).map(catalystRow).join('') || '<div class="catalyst-row neutral"><span class="catalyst-when">-</span><div class="catalyst-main"><strong>ยังไม่พบ Catalyst</strong><p>ยังไม่มีข่าวหรือเหตุการณ์ที่ระบบระบุได้</p></div></div>'}
     </div>`);
+  setProCardTone('.pro-mini-card[data-detail="trade"]', tradeTone);
+  setProCardTone('.pro-mini-card[data-detail="smart"]', smartTone);
+  setProCardTone('.pro-mini-card[data-detail="news"]', newsAggregateTone);
+  setProCardTone('.pro-mini-card[data-detail="social"]', socialTone);
+  setProCardTone('.pro-mini-card[data-detail="catalyst"]', catalystTone);
 }
 
 function setHtml(id, html) {
@@ -1101,10 +1134,11 @@ function buildDetailContent(type, data) {
   if (type === 'watchlist-list') return watchlistDetailContent();
   if (type === 'score' || type === 'interpretation') {
     const scoreInfo = scoreMeaningFromBackend(data.scoreInterpretation || data.profile?.scoreInterpretation, data.profile?.score);
+    const scoreTone = proToneByScore(data.profile?.score);
     return { title:'รายละเอียดคะแนน AI', html:`<div class="detail-grid">
-      <div class="detail-card"><h3>${data.profile.score}/100 = ${escapeHtml(scoreInfo.label)}</h3><p>${escapeHtml(scoreInfo.meaning || '')}</p></div>
-      <div class="detail-card"><h3>แกนวิเคราะห์</h3><p>${escapeHtml(data.profile.thesis || '-')}</p></div>
-      <div class="detail-card"><h3>คำตัดสิน</h3><p>${escapeHtml(data.summary?.headline || '-')}</p><p>${escapeHtml(data.summary?.text || '-')}</p></div>
+      <div class="detail-card ${toneClass(scoreTone)}"><h3>${data.profile.score}/100 = ${escapeHtml(scoreInfo.label)}</h3><p>${escapeHtml(scoreInfo.meaning || '')}</p></div>
+      <div class="detail-card ${toneClass(scoreTone)}"><h3>แกนวิเคราะห์</h3><p>${escapeHtml(data.profile.thesis || '-')}</p></div>
+      <div class="detail-card ${toneClass(scoreTone)}"><h3>คำตัดสิน</h3><p>${escapeHtml(data.summary?.headline || '-')}</p><p>${escapeHtml(data.summary?.text || '-')}</p></div>
     </div>` };
   }
   if (type?.startsWith('agent-')) {
@@ -1113,10 +1147,11 @@ function buildDetailContent(type, data) {
   }
   if (type === 'smart') {
     const sm = data.smartMoney || {};
-    return { title:'รายละเอียด Smart Money', html:`<div class="detail-card"><h3>${sm.score || '-'} / 100</h3>
+    const smTone = insightToneFromText(`${sm.interpretation?.label || ''} ${sm.interpretation?.meaning || ''} ${sm.summary || ''} ${sm.action || ''}`, sm.score);
+    return { title:'รายละเอียด Smart Money', html:`<div class="detail-card ${toneClass(smTone)}"><h3>${sm.score || '-'} / 100</h3>
         <div class="colored-insight-block">
-          ${coloredInsightRow('สถานะเงินใหญ่', sm.interpretation?.label || sm.action || '-', insightToneFromText(`${sm.interpretation?.label || ''} ${sm.action || ''}`, sm.score))}
-          ${coloredInsightRow('ความหมาย', sm.interpretation?.meaning || sm.summary || '-', insightToneFromText(`${sm.interpretation?.meaning || ''} ${sm.summary || ''}`, sm.score))}
+          ${coloredInsightRow('สถานะเงินใหญ่', sm.interpretation?.label || sm.action || '-', smTone)}
+          ${coloredInsightRow('ความหมาย', sm.interpretation?.meaning || sm.summary || '-', smTone)}
         </div>
       </div>
       <div class="detail-grid">${(sm.indicators || []).map(i => {
@@ -1145,11 +1180,13 @@ function buildDetailContent(type, data) {
   if (type === 'trade' || type === 'prediction' || type === 'price') {
     const p = data.prediction || {};
     const plan = p.tradePlan || {};
+    const tradeTone = proToneByChange(p.predictedReturn ?? p.technical?.dayChange ?? 0);
+    const confidenceTone = proToneByScore(p.confidence);
     return { title:'แผนราคา / จุดเข้าออก / Prediction', html:`<div class="detail-grid">
-      <div class="detail-card"><h3>ราคาล่าสุด</h3><p>${money(p.lastPrice)}</p></div>
-      <div class="detail-card"><h3>คาดการณ์</h3><p>${money(p.predictedPrice)} (${percent(p.predictedReturn)})</p></div>
-      <div class="detail-card"><h3>กรอบราคา</h3><p>${money(p.rangeLow)} - ${money(p.rangeHigh)}</p></div>
-      <div class="detail-card"><h3>Trade Plan</h3>
+      <div class="detail-card ${toneClass(tradeTone)}"><h3>ราคาล่าสุด</h3><p>${money(p.lastPrice)}</p></div>
+      <div class="detail-card ${toneClass(tradeTone)}"><h3>คาดการณ์</h3><p>${money(p.predictedPrice)} (${percent(p.predictedReturn)})</p></div>
+      <div class="detail-card ${toneClass(tradeTone)}"><h3>กรอบราคา</h3><p>${money(p.rangeLow)} - ${money(p.rangeHigh)}</p></div>
+      <div class="detail-card ${toneClass(confidenceTone)}"><h3>Trade Plan</h3>
         <ul class="pro-bullet-list trade-plan-color-list">
           <li><span class="trade-label entry">จุดเข้า</span><strong class="trade-price entry">${money(plan.confirmationLevel || p.levels?.resistance)}</strong></li>
           <li><span class="trade-label follow">จุด Follow</span><strong class="trade-price follow">${money(plan.followLevel || p.levels?.resistance)}</strong></li>
@@ -1171,23 +1208,25 @@ function buildDetailContent(type, data) {
       </ul></div>` };
   }
   if (type === 'matrix') {
-    return { title:'Decision Matrix ทั้งหมด', html:`<div class="detail-grid">${(data.factors || []).map(f => `<div class="detail-card"><h3>${f.index}. ${escapeHtml(f.dimension)}</h3><p><strong>${escapeHtml(f.scoreText)} • ${escapeHtml(f.status)}</strong></p><p>${escapeHtml(f.explanation)}</p><p><strong>จับตา:</strong> ${escapeHtml(f.watch)}</p><p><strong>Action:</strong> ${escapeHtml(f.action)}</p></div>`).join('')}</div>`};
+    return { title:'Decision Matrix ทั้งหมด', html:`<div class="detail-grid">${(data.factors || []).map(f => `<div class="detail-card ${toneClass(proToneByScore(f.score))}"><h3>${f.index}. ${escapeHtml(f.dimension)}</h3><p><strong>${escapeHtml(f.scoreText)} • ${escapeHtml(f.status)}</strong></p><p>${escapeHtml(f.explanation)}</p><p><strong>จับตา:</strong> ${escapeHtml(f.watch)}</p><p><strong>Action:</strong> ${escapeHtml(f.action)}</p></div>`).join('')}</div>`};
   }
   if (type?.startsWith('factor-')) {
     const idx = Number(type.split('-')[1]);
     const f = (data.factors || []).find(x => x.index === idx);
-    return { title: f?.dimension || 'รายละเอียดมิติ', html: f ? `<div class="detail-card"><h3>${escapeHtml(f.scoreText)} • ${escapeHtml(f.status)}</h3><p>${escapeHtml(f.explanation)}</p><p><strong>น้ำหนัก:</strong> ${escapeHtml(f.weight)} • <strong>ความมั่นใจ:</strong> ${escapeHtml(f.confidence)}</p><p><strong>ผลต่อราคา:</strong> ${escapeHtml(f.priceImpact)} • <strong>ระยะเวลา:</strong> ${escapeHtml(f.timeframe)}</p><p><strong>สิ่งที่ต้องจับตา:</strong> ${escapeHtml(f.watch)}</p><p><strong>Action:</strong> ${escapeHtml(f.action)}</p></div>` : '<p>ไม่พบข้อมูล</p>'};
+    return { title: f?.dimension || 'รายละเอียดมิติ', html: f ? `<div class="detail-card ${toneClass(proToneByScore(f.score))}"><h3>${escapeHtml(f.scoreText)} • ${escapeHtml(f.status)}</h3><p>${escapeHtml(f.explanation)}</p><p><strong>น้ำหนัก:</strong> ${escapeHtml(f.weight)} • <strong>ความมั่นใจ:</strong> ${escapeHtml(f.confidence)}</p><p><strong>ผลต่อราคา:</strong> ${escapeHtml(f.priceImpact)} • <strong>ระยะเวลา:</strong> ${escapeHtml(f.timeframe)}</p><p><strong>สิ่งที่ต้องจับตา:</strong> ${escapeHtml(f.watch)}</p><p><strong>Action:</strong> ${escapeHtml(f.action)}</p></div>` : '<p>ไม่พบข้อมูล</p>'};
   }
   if (type === 'data') {
-    return { title:'คุณภาพข้อมูล', html:`<div class="detail-card"><p>ราคา: ${escapeHtml(data.dataSources?.price || '-')}</p><p>ข่าว: ${escapeHtml(data.dataSources?.news || '-')}</p><p>Social confidence: ${escapeHtml(String(data.social?.summary?.confidence || 0))}%</p><p>Prediction confidence: ${escapeHtml(String(data.prediction?.confidence || 0))}%</p></div>`};
+    const dataTone = proToneByScore(data.prediction?.confidence);
+    return { title:'คุณภาพข้อมูล', html:`<div class="detail-card ${toneClass(dataTone)}"><p>ราคา: ${escapeHtml(data.dataSources?.price || '-')}</p><p>ข่าว: ${escapeHtml(data.dataSources?.news || '-')}</p><p>Social confidence: ${escapeHtml(String(data.social?.summary?.confidence || 0))}%</p><p>Prediction confidence: ${escapeHtml(String(data.prediction?.confidence || 0))}%</p></div>`};
   }
-  return { title:'รายละเอียด', html:`<div class="detail-card"><p>เลือกการ์ดหรือแถวเพื่อดูรายละเอียดเชิงลึก</p></div>`};
+  return { title:'รายละเอียด', html:`<div class="detail-card tone-neutral"><p>เลือกการ์ดหรือแถวเพื่อดูรายละเอียดเชิงลึก</p></div>`};
 }
 
 function agentDetail(agent, title='รายละเอียด Agent') {
   if (!agent) return { title, html:'<p>ไม่พบข้อมูล Agent</p>' };
-  return { title, html:`<div class="detail-card"><h3>${escapeHtml(agent.name)} • ${escapeHtml(agent.score ?? '-')} / 100</h3><p>${escapeHtml(agent.summary || agent.verdict || '-')}</p></div>
-    ${(agent.sections || []).map(s => `<div class="detail-card"><h3>${escapeHtml(s.title || '-')}</h3><ul>${(s.points || []).map(p => `<li>${escapeHtml(p)}</li>`).join('')}</ul></div>`).join('')}` };
+  const agentTone = proToneByScore(agent.score);
+  return { title, html:`<div class="detail-card ${toneClass(agentTone)}"><h3>${escapeHtml(agent.name)} • ${escapeHtml(agent.score ?? '-')} / 100</h3><p>${escapeHtml(agent.summary || agent.verdict || '-')}</p></div>
+    ${(agent.sections || []).map(s => `<div class="detail-card ${toneClass(agentTone)}"><h3>${escapeHtml(s.title || '-')}</h3><ul>${(s.points || []).map(p => `<li>${escapeHtml(p)}</li>`).join('')}</ul></div>`).join('')}` };
 }
 
 
