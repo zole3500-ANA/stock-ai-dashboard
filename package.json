@@ -1,7 +1,7 @@
 {
   "name": "stock-ai-dashboard",
-  "version": "2.2.0",
-  "description": "Pixel Agents Pro compact dashboard layout with clickable detail modal, Stock/Bitcoin mode, and mobile readability.",
+  "version": "2.2.6",
+  "description": "Pixel Agents Pro dashboard with colored interpretation, last price, and data confidence cards.",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -60,7 +60,24 @@
     "pro-layout",
     "detail-modal",
     "pixel-agents-dashboard",
-    "compact-ui"
+    "compact-ui",
+    "line-mobile",
+    "android-comfort",
+    "mobile-pro-layout",
+    "colored-trade-plan",
+    "entry-follow-stoploss",
+    "colored-insights",
+    "sentiment-colors",
+    "colored-news-social-smart",
+    "catalyst-events",
+    "event-calendar",
+    "catalyst-cards",
+    "watchlist",
+    "localstorage-watchlist",
+    "working-watchlist",
+    "colored-score-cards",
+    "confidence-card-colors",
+    "price-card-colors"
   ],
   "author": "zole3500-ANA + ChatGPT",
   "license": "MIT"

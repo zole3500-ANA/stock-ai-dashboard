@@ -609,6 +609,157 @@ function summaryLabel(summary) {
 
 
 
+
+const WATCHLIST_KEY = 'stock-ai-dashboard-watchlist-v1';
+
+function readWatchlist() {
+  try {
+    const raw = localStorage.getItem(WATCHLIST_KEY);
+    const rows = JSON.parse(raw || '[]');
+    return Array.isArray(rows) ? rows : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveWatchlist(rows) {
+  localStorage.setItem(WATCHLIST_KEY, JSON.stringify(rows.slice(0, 100)));
+}
+
+function watchlistKey(data) {
+  return `${data.assetType || 'stock'}:${data.symbol || ''}`;
+}
+
+function isInWatchlist(data) {
+  const key = watchlistKey(data);
+  return readWatchlist().some(item => item.key === key);
+}
+
+function toggleWatchlist(data) {
+  if (!data?.symbol) return;
+  const key = watchlistKey(data);
+  const current = readWatchlist();
+  const exists = current.some(item => item.key === key);
+  let next;
+  if (exists) {
+    next = current.filter(item => item.key !== key);
+    showProToast(`นำ ${data.symbol} ออกจาก Watchlist แล้ว`, 'negative');
+  } else {
+    next = [
+      {
+        key,
+        symbol: data.symbol,
+        assetType: data.assetType || 'stock',
+        assetLabel: data.assetLabel || (data.assetType === 'crypto' ? 'Bitcoin / Crypto' : 'หุ้น'),
+        market: data.market || '-',
+        company: data.profile?.company || '-',
+        score: data.profile?.score ?? null,
+        verdict: data.prediction?.verdict || '-',
+        lastPrice: data.prediction?.lastPrice ?? null,
+        updatedAt: new Date().toISOString()
+      },
+      ...current
+    ];
+    showProToast(`เพิ่ม ${data.symbol} เข้า Watchlist แล้ว`, 'positive');
+  }
+  saveWatchlist(next);
+  updateWatchlistButton(data);
+}
+
+function updateWatchlistButton(data) {
+  const btn = document.querySelector('[data-detail="watchlist"]');
+  if (!btn || !data) return;
+  const active = isInWatchlist(data);
+  btn.classList.toggle('watchlist-active', active);
+  btn.innerHTML = active ? '★ อยู่ใน WATCHLIST' : '⭐ WATCHLIST';
+  btn.title = active ? 'กดเพื่อนำออกจาก Watchlist' : 'กดเพื่อเพิ่มเข้า Watchlist';
+}
+
+function showProToast(message, tone = 'neutral') {
+  let toast = $('proToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'proToast';
+    toast.className = 'pro-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.className = `pro-toast show ${tone}`;
+  window.clearTimeout(window.__proToastTimer);
+  window.__proToastTimer = window.setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2300);
+}
+
+function watchlistDetailContent() {
+  const rows = readWatchlist();
+  if (!rows.length) {
+    return {
+      title: 'Watchlist',
+      html: `<div class="detail-card"><h3>ยังไม่มีรายการใน Watchlist</h3><p>กดปุ่ม ⭐ WATCHLIST บนสินทรัพย์ที่ต้องการติดตาม เพื่อบันทึกไว้ในเครื่องนี้</p></div>`
+    };
+  }
+
+  return {
+    title: `Watchlist (${rows.length} รายการ)`,
+    html: `<div class="watchlist-detail-list">
+      ${rows.map(item => {
+        const tone = scoreTone(Number(item.score || 0));
+        return `<div class="watchlist-item tone-${tone}">
+          <div>
+            <h3>${escapeHtml(item.symbol)} <span>${escapeHtml(item.assetLabel || '')}</span></h3>
+            <p>${escapeHtml(item.company || '-')}</p>
+            <small>${escapeHtml(item.market || '-')} • เพิ่มเมื่อ ${formatDateTimeShort(item.updatedAt)}</small>
+          </div>
+          <div class="watchlist-meta">
+            <strong>${item.score ?? '-'}/100</strong>
+            <span>${escapeHtml(item.verdict || '-')}</span>
+            <span>${item.lastPrice != null ? money(item.lastPrice) : '-'}</span>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="detail-card"><p>หมายเหตุ: Watchlist นี้เก็บด้วย localStorage ในเครื่อง/เบราว์เซอร์ที่ใช้อยู่ หากเปิดคนละเครื่องหรือเคลียร์ cache รายการอาจหายได้</p></div>`
+  };
+}
+
+function formatDateTimeShort(value) {
+  if (!value) return '-';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '-';
+  return d.toLocaleString('th-TH', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+}
+
+
+
+function proToneByScore(score) {
+  const n = Number(score || 0);
+  if (n >= 60) return 'positive';
+  if (n <= 40) return 'negative';
+  return 'neutral';
+}
+
+function proToneByChange(change) {
+  const n = Number(change || 0);
+  if (n > 0.005) return 'positive';
+  if (n < -0.005) return 'negative';
+  return 'neutral';
+}
+
+function setProCardTone(selector, tone) {
+  const el = document.querySelector(selector);
+  if (!el) return;
+  el.classList.remove('tone-positive', 'tone-neutral', 'tone-negative');
+  el.classList.add(`tone-${tone || 'neutral'}`);
+}
+
+function toneText(tone) {
+  if (tone === 'positive') return 'ดี / บวก';
+  if (tone === 'negative') return 'เสี่ยง / ลบ';
+  return 'กลาง / รอดู';
+}
+
+
 function renderProDashboard(data) {
   if (!$('overview-pro')) return;
   const { symbol, profile, prediction, summary } = data;
@@ -616,6 +767,13 @@ function renderProDashboard(data) {
   const scoreInfo = scoreMeaningFromBackend(data.scoreInterpretation || profile.scoreInterpretation, profile.score);
   const d = new Date(data.generatedAt);
   const change = Number(tech.dayChange || 0);
+  const scoreToneValue = proToneByScore(profile.score);
+  const confidenceToneValue = proToneByScore(prediction.confidence);
+  const priceToneValue = proToneByChange(change);
+
+  setProCardTone('.pro-interpret-card', scoreToneValue);
+  setProCardTone('.pro-confidence-card', confidenceToneValue);
+  setProCardTone('.pro-last-card', priceToneValue);
 
   setText('proTickerTitle', symbol);
   setText('proCompanyMini', profile.company);
@@ -629,13 +787,13 @@ function renderProDashboard(data) {
   setText('proScoreText', profile.score);
   setText('proScoreLabel', scoreInfo.label || '-');
   setText('proScoreMeaning', scoreInfo.meaning || profile.thesis || '-');
-  setText('proScoreExplain', `${scoreInfo.label || '-'}: ${scoreInfo.meaning || '-'} ${profile.thesis || ''}`);
+  setText('proScoreExplain', `${toneText(scoreToneValue)} • ${scoreInfo.label || '-'}: ${scoreInfo.meaning || '-'} ${profile.thesis || ''}`);
   setText('proBiasText', prediction.verdict);
   setText('proBiasExplain', prediction.direction || '-');
   setText('proConfidenceText', `${prediction.confidence}%`);
-  setText('proConfidenceLevel', prediction.confidence >= 70 ? 'น่าเชื่อถือสูง' : prediction.confidence >= 50 ? 'ปานกลาง' : 'ข้อมูลจำกัด');
+  setText('proConfidenceLevel', `${toneText(confidenceToneValue)} • ${prediction.confidence >= 70 ? 'น่าเชื่อถือสูง' : prediction.confidence >= 50 ? 'ปานกลาง' : 'ข้อมูลจำกัด'}`);
   setText('proClosePrice', money(prediction.lastPrice));
-  setText('proRangeMini', `ช่วง ${money(prediction.rangeLow)} - ${money(prediction.rangeHigh)}`);
+  setText('proRangeMini', `${toneText(priceToneValue)} • ช่วง ${money(prediction.rangeLow)} - ${money(prediction.rangeHigh)}`);
 
   const proDonut = document.querySelector('.pro-donut');
   if (proDonut) proDonut.style.setProperty('--score', `${Math.max(0, Math.min(100, profile.score))}%`);
@@ -705,6 +863,162 @@ function renderProFactors(factors) {
   }).join('');
 }
 
+
+function insightToneFromText(text = '', score = null) {
+  const t = String(text || '').toLowerCase();
+  const n = Number(score);
+  if (Number.isFinite(n)) {
+    if (n >= 60) return 'positive';
+    if (n <= 40) return 'negative';
+  }
+  if (/(positive|bullish|ดี|บวก|หนุน|แข็งแรง|สะสม|ไหลเข้า|ฟื้น|กำไร|เพิ่มขึ้น|ผ่าน|ยืนยัน)/i.test(t)) return 'positive';
+  if (/(negative|bearish|ลบ|กดดัน|เสี่ยง|อ่อน|ขาย|ไหลออก|ลดลง|ขาดทุน|หลุด|ระวัง|dilution|offering)/i.test(t)) return 'negative';
+  return 'neutral';
+}
+
+function insightToneLabel(tone) {
+  if (tone === 'positive') return 'ข่าวดี';
+  if (tone === 'negative') return 'ข่าวไม่ดี';
+  return 'ข่าวกลาง';
+}
+
+function insightToneIcon(tone) {
+  if (tone === 'positive') return '●';
+  if (tone === 'negative') return '●';
+  return '●';
+}
+
+function newsTone(newsItem = {}) {
+  const raw = `${newsItem.sentimentLabelTh || ''} ${newsItem.eventTypeTh || ''} ${newsItem.titleTh || newsItem.title || ''} ${newsItem.snippetTh || newsItem.snippet || ''}`;
+  if (/บวก|positive|ดี|หนุน|ชนะ|สัญญา|กำไร|เพิ่มขึ้น|อนุมัติ/i.test(raw)) return 'positive';
+  if (/ลบ|negative|ไม่ดี|เสี่ยง|ฟ้อง|ลดลง|ขาดทุน|offering|dilution|เพิ่มทุน|delisting|ขาย/i.test(raw)) return 'negative';
+  return 'neutral';
+}
+
+function socialToneFromPlatform(platform = {}) {
+  const heat = Number(platform.heatScore || 0);
+  const hype = Number(platform.hypeRisk || 0);
+  const sentiment = Number(platform.sentimentScore || 0);
+  if (sentiment > 0.12 || (heat >= 60 && hype < 60)) return 'positive';
+  if (sentiment < -0.12 || hype >= 70) return 'negative';
+  return 'neutral';
+}
+
+function coloredInsightRow(label, value, tone = 'neutral', extra = '') {
+  return `<div class="colored-insight-row ${tone}">
+    <span class="insight-dot">${insightToneIcon(tone)}</span>
+    <span class="insight-label">${escapeHtml(label)}</span>
+    <strong class="insight-value">${escapeHtml(value)}</strong>
+    ${extra ? `<small>${escapeHtml(extra)}</small>` : ''}
+  </div>`;
+}
+
+
+
+function buildCatalystEvents(data) {
+  const isCrypto = data.assetType === 'crypto';
+  const news = data.news || [];
+  const factors = data.factors || [];
+  const prediction = data.prediction || {};
+  const social = data.social?.summary || {};
+  const tech = prediction.technical || {};
+  const events = [];
+
+  events.push({
+    when: 'วันนี้',
+    label: 'ตรวจสัญญาณราคา/Volume',
+    detail: `ราคา ${money(prediction.lastPrice)} • VWAP ${money(tech.vwap20)} • Volume ${Number(tech.volRatio || 0).toFixed(2)}x`,
+    tone: tech.last > tech.vwap20 && Number(tech.volRatio || 0) >= 1.2 ? 'positive' : tech.last < tech.vwap20 ? 'negative' : 'neutral',
+    source: 'Price / Technical'
+  });
+
+  events.push({
+    when: '24 ชม.',
+    label: isCrypto ? 'Social / Funding / Liquidation Watch' : 'Social / ข่าว / Pre-market Watch',
+    detail: isCrypto
+      ? `Heat ${social.heatScore || 0}/100 • Hype Risk ${social.hypeRisk || 0}/100 • ตรวจ funding/OI เพิ่ม`
+      : `Heat ${social.heatScore || 0}/100 • Hype Risk ${social.hypeRisk || 0}/100 • ตรวจ pre-market และข่าวใหม่`,
+    tone: Number(social.hypeRisk || 0) >= 65 ? 'negative' : Number(social.heatScore || 0) >= 60 ? 'positive' : 'neutral',
+    source: 'Social / Market Watch'
+  });
+
+  for (const item of news.slice(0, 8)) {
+    const text = `${item.titleTh || item.title || ''} ${item.snippetTh || item.snippet || ''} ${item.eventTypeTh || ''}`.toLowerCase();
+    let label = item.eventTypeTh || 'ข่าวสำคัญ';
+    if (/earning|งบ|results|quarter|revenue/.test(text)) label = 'Earnings / งบการเงิน';
+    else if (/offering|dilution|เพิ่มทุน|warrant|s-1/.test(text)) label = 'Offering / Dilution';
+    else if (/sec|8-k|10-q|filing|nasdaq|delisting/.test(text)) label = 'SEC / Corporate Action';
+    else if (/contract|award|partnership|สัญญา|ลูกค้า/.test(text)) label = 'Contract / Partnership';
+    else if (/etf|fed|cpi|fomc|inflation|dxy|yield/.test(text)) label = isCrypto ? 'Macro / ETF Event' : 'Macro / Market Event';
+    else if (/hack|exchange|liquidation|funding|whale|on-chain/.test(text)) label = 'Crypto Market Event';
+
+    const tone = newsTone(item);
+    events.push({
+      when: formatDateShort(item.publishedAt) || 'สัปดาห์นี้',
+      label,
+      detail: item.titleTh || item.title || '-',
+      tone,
+      source: item.source || 'News',
+      url: item.url || ''
+    });
+  }
+
+  const watchedFactors = factors
+    .filter(f => /catalyst|sec|dilution|offering|macro|regulation|smart|social|risk|volume|funding|liquidation|exchange/i.test(`${f.dimension} ${f.watch} ${f.action}`))
+    .slice(0, 5);
+
+  watchedFactors.forEach(f => {
+    events.push({
+      when: 'ต้องจับตา',
+      label: f.dimension || 'Factor Watch',
+      detail: f.watch || f.action || f.explanation || '-',
+      tone: Number(f.score || 0) >= 60 ? 'positive' : Number(f.score || 0) <= 40 ? 'negative' : 'neutral',
+      source: 'Decision Matrix'
+    });
+  });
+
+  if (isCrypto) {
+    events.push({
+      when: 'สัปดาห์นี้',
+      label: 'Crypto External Check',
+      detail: 'ตรวจ Coinglass / CryptoQuant / Glassnode / ETF Flow เพิ่ม เพราะระบบยังใช้ proxy บางส่วน',
+      tone: 'neutral',
+      source: 'Crypto Data Quality'
+    });
+  } else {
+    events.push({
+      when: 'สัปดาห์นี้',
+      label: 'SEC / Earnings Calendar Check',
+      detail: 'ตรวจ SEC EDGAR, Earnings calendar และข่าว company-specific เพิ่มก่อนถือข้ามวัน',
+      tone: 'neutral',
+      source: 'Manual Verification'
+    });
+  }
+
+  const seen = new Set();
+  return events.filter(e => {
+    const key = `${e.when}|${e.label}|${e.detail}`.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 14);
+}
+
+function catalystRow(event) {
+  const tone = event.tone || 'neutral';
+  const source = event.source ? ` • ${event.source}` : '';
+  const link = event.url ? ` data-url="${escapeHtml(event.url)}"` : '';
+  return `<div class="catalyst-row ${tone}"${link}>
+    <span class="catalyst-when">${escapeHtml(event.when || '-')}</span>
+    <div class="catalyst-main">
+      <strong>${escapeHtml(event.label || '-')}</strong>
+      <p>${escapeHtml(event.detail || '-')}</p>
+      <small>${insightToneLabel(tone)}${escapeHtml(source)}</small>
+    </div>
+  </div>`;
+}
+
+
 function renderProBottom(data) {
   const p = data.prediction || {};
   const plan = p.tradePlan || {};
@@ -712,26 +1026,40 @@ function renderProBottom(data) {
   const news = data.news || [];
   const social = data.social?.summary || {};
   setHtml('proTradePlan', `
-    <ul class="pro-bullet-list">
-      <li>จุดเข้า: <strong>${money(plan.confirmationLevel || p.levels?.resistance)}</strong></li>
-      <li>จุด Follow: <strong>${money(plan.followLevel || p.levels?.resistance)}</strong></li>
-      <li>ลดความเสี่ยง: <strong>${money(plan.reduceRiskLevel || p.levels?.support)}</strong></li>
-      <li>Stop-loss: <strong>${money(plan.stopLoss || p.levels?.stopLoss)}</strong></li>
+    <ul class="pro-bullet-list trade-plan-color-list">
+      <li><span class="trade-label entry">จุดเข้า</span><strong class="trade-price entry">${money(plan.confirmationLevel || p.levels?.resistance)}</strong></li>
+      <li><span class="trade-label follow">จุด Follow</span><strong class="trade-price follow">${money(plan.followLevel || p.levels?.resistance)}</strong></li>
+      <li><span class="trade-label reduce">ลดความเสี่ยง</span><strong class="trade-price reduce">${money(plan.reduceRiskLevel || p.levels?.support)}</strong></li>
+      <li><span class="trade-label stop">Stop-loss</span><strong class="trade-price stop">${money(plan.stopLoss || p.levels?.stopLoss)}</strong></li>
     </ul>`);
+  const smartTone = insightToneFromText(`${smart.interpretation?.label || ''} ${smart.interpretation?.meaning || ''} ${smart.summary || ''} ${smart.action || ''}`, smart.score);
   setHtml('proSmartSummary', `
     <div class="pro-mini-score ${scoreTone(smart.score || 0)}">${smart.score || '-'}<small>/100</small></div>
-    <p>${escapeHtml(smart.interpretation?.meaning || smart.summary || smart.action || '-')}</p>`);
+    <div class="colored-insight-block">
+      ${coloredInsightRow('สถานะเงินใหญ่', smart.interpretation?.label || smart.action || '-', smartTone)}
+      ${coloredInsightRow('สรุป', smart.interpretation?.meaning || smart.summary || smart.overview || '-', smartTone)}
+      ${coloredInsightRow('สิ่งที่ต้องจับตา', smart.watch || 'OBV / CMF / MFI / CVD proxy', smartTone)}
+    </div>`);
   setHtml('proNewsSummary', `
-    <ul class="pro-bullet-list">${news.slice(0,4).map(n => `<li><strong>${formatDateShort(n.publishedAt)}</strong> ${escapeHtml(n.titleTh || n.title || '-')}</li>`).join('') || '<li>ยังไม่มีข่าว</li>'}</ul>`);
+    <div class="colored-insight-block news-color-list">
+      ${news.slice(0,4).map(n => {
+        const tone = newsTone(n);
+        return coloredInsightRow(`${formatDateShort(n.publishedAt)} • ${insightToneLabel(tone)}`, n.titleTh || n.title || '-', tone, n.source || '');
+      }).join('') || coloredInsightRow('ข่าว', 'ยังไม่มีข่าว', 'neutral')}
+    </div>`);
+  const socialTone = insightToneFromText(`${social.thaiSummary || ''} ${social.dominantTone || ''}`, 50 + Number(social.sentimentScore || 0) * 50);
   setHtml('proSocialSummary', `
     <div class="pro-mini-score ${scoreTone(50 + Number(social.sentimentScore || 0) * 50)}">${social.heatScore || 0}<small>%</small></div>
-    <p>${escapeHtml(social.thaiSummary || social.dominantTone || '-')}</p>`);
+    <div class="colored-insight-block">
+      ${coloredInsightRow('ภาพรวม Social', social.thaiSummary || social.dominantTone || '-', socialTone)}
+      ${coloredInsightRow('Heat', `${social.heatScore || 0}/100`, Number(social.heatScore || 0) >= 60 ? 'positive' : Number(social.heatScore || 0) <= 35 ? 'negative' : 'neutral')}
+      ${coloredInsightRow('Hype Risk', `${social.hypeRisk || 0}/100`, Number(social.hypeRisk || 0) >= 65 ? 'negative' : Number(social.hypeRisk || 0) <= 35 ? 'positive' : 'neutral')}
+    </div>`);
+  const catalysts = buildCatalystEvents(data);
   setHtml('proCatalystSummary', `
-    <ul class="pro-bullet-list">
-      <li>วันนี้: ตรวจข่าวใหม่ / volume / social heat</li>
-      <li>สัปดาห์นี้: earnings, SEC, ETF/macro หรือ catalyst ใหม่</li>
-      <li>ไม่มีกำหนด: ข่าว contract / regulatory / whale movement</li>
-    </ul>`);
+    <div class="catalyst-list compact">
+      ${catalysts.slice(0, 4).map(catalystRow).join('') || '<div class="catalyst-row neutral"><span class="catalyst-when">-</span><div class="catalyst-main"><strong>ยังไม่พบ Catalyst</strong><p>ยังไม่มีข่าวหรือเหตุการณ์ที่ระบบระบุได้</p></div></div>'}
+    </div>`);
 }
 
 function setHtml(id, html) {
@@ -770,6 +1098,7 @@ function closeProDetail() {
 
 function buildDetailContent(type, data) {
   const agents = data.agents || [];
+  if (type === 'watchlist-list') return watchlistDetailContent();
   if (type === 'score' || type === 'interpretation') {
     const scoreInfo = scoreMeaningFromBackend(data.scoreInterpretation || data.profile?.scoreInterpretation, data.profile?.score);
     return { title:'รายละเอียดคะแนน AI', html:`<div class="detail-grid">
@@ -784,15 +1113,34 @@ function buildDetailContent(type, data) {
   }
   if (type === 'smart') {
     const sm = data.smartMoney || {};
-    return { title:'รายละเอียด Smart Money', html:`<div class="detail-card"><h3>${sm.score || '-'} / 100</h3><p>${escapeHtml(sm.interpretation?.meaning || sm.summary || sm.action || '-')}</p></div>
-      <div class="detail-grid">${(sm.indicators || []).map(i => `<div class="detail-card"><h3>${escapeHtml(i.name || '-')}</h3><p><strong>${escapeHtml(i.value ?? '-')}</strong></p><p>${escapeHtml(i.explanation || i.status || '-')}</p></div>`).join('')}</div>`};
+    return { title:'รายละเอียด Smart Money', html:`<div class="detail-card"><h3>${sm.score || '-'} / 100</h3>
+        <div class="colored-insight-block">
+          ${coloredInsightRow('สถานะเงินใหญ่', sm.interpretation?.label || sm.action || '-', insightToneFromText(`${sm.interpretation?.label || ''} ${sm.action || ''}`, sm.score))}
+          ${coloredInsightRow('ความหมาย', sm.interpretation?.meaning || sm.summary || '-', insightToneFromText(`${sm.interpretation?.meaning || ''} ${sm.summary || ''}`, sm.score))}
+        </div>
+      </div>
+      <div class="detail-grid">${(sm.indicators || []).map(i => {
+        const tone = insightToneFromText(`${i.status || ''} ${i.explanation || ''}`, null);
+        return `<div class="detail-card colored-detail ${tone}"><h3>${escapeHtml(i.name || '-')}</h3><p><strong>${escapeHtml(i.value ?? '-')}</strong></p><p>${escapeHtml(i.explanation || i.status || '-')}</p></div>`;
+      }).join('')}</div>`};
   }
   if (type === 'social') {
     const platforms = data.social?.platforms || [];
-    return { title:'รายละเอียด Social Media', html:`<div class="detail-grid">${platforms.map(p => `<div class="detail-card"><h3>${escapeHtml(p.name)} • ${p.mentionCountLabel || p.mentionCount || 0}</h3><p>${escapeHtml(p.analysisTh || '-')}</p><p>Heat ${p.heatScore || 0}/100 • Hype ${p.hypeRisk || 0}/100 • Confidence ${p.confidence || 0}%</p></div>`).join('')}</div>`};
+    return { title:'รายละเอียด Social Media', html:`<div class="detail-grid">${platforms.map(p => {
+      const tone = socialToneFromPlatform(p);
+      return `<div class="detail-card colored-detail ${tone}"><h3>${escapeHtml(p.name)} • ${p.mentionCountLabel || p.mentionCount || 0}</h3><p>${escapeHtml(p.analysisTh || '-')}</p>
+        <div class="colored-insight-block">
+          ${coloredInsightRow('Heat', `${p.heatScore || 0}/100`, Number(p.heatScore || 0) >= 60 ? 'positive' : Number(p.heatScore || 0) <= 35 ? 'negative' : 'neutral')}
+          ${coloredInsightRow('Hype Risk', `${p.hypeRisk || 0}/100`, Number(p.hypeRisk || 0) >= 65 ? 'negative' : Number(p.hypeRisk || 0) <= 35 ? 'positive' : 'neutral')}
+          ${coloredInsightRow('Confidence', `${p.confidence || 0}%`, Number(p.confidence || 0) >= 60 ? 'positive' : Number(p.confidence || 0) <= 35 ? 'negative' : 'neutral')}
+        </div></div>`;
+    }).join('')}</div>`};
   }
   if (type === 'news') {
-    return { title:'ข่าวสำคัญทั้งหมด', html:`<div class="detail-list">${(data.news || []).map(n => `<a class="detail-news" href="${escapeHtml(n.url)}" target="_blank" rel="noopener"><strong>${escapeHtml(n.titleTh || n.title || '-')}</strong><span>${escapeHtml(n.source || '')} • ${formatDateShort(n.publishedAt)} • ${escapeHtml(n.sentimentLabelTh || '')}</span><p>${escapeHtml(n.snippetTh || n.snippet || '')}</p></a>`).join('')}</div>` };
+    return { title:'ข่าวสำคัญทั้งหมด', html:`<div class="detail-list">${(data.news || []).map(n => {
+      const tone = newsTone(n);
+      return `<a class="detail-news colored-detail ${tone}" href="${escapeHtml(n.url)}" target="_blank" rel="noopener"><strong>${escapeHtml(n.titleTh || n.title || '-')}</strong><span>${escapeHtml(n.source || '')} • ${formatDateShort(n.publishedAt)} • ${escapeHtml(n.sentimentLabelTh || insightToneLabel(tone))}</span><p>${escapeHtml(n.snippetTh || n.snippet || '')}</p></a>`;
+    }).join('')}</div>` };
   }
   if (type === 'trade' || type === 'prediction' || type === 'price') {
     const p = data.prediction || {};
@@ -801,8 +1149,26 @@ function buildDetailContent(type, data) {
       <div class="detail-card"><h3>ราคาล่าสุด</h3><p>${money(p.lastPrice)}</p></div>
       <div class="detail-card"><h3>คาดการณ์</h3><p>${money(p.predictedPrice)} (${percent(p.predictedReturn)})</p></div>
       <div class="detail-card"><h3>กรอบราคา</h3><p>${money(p.rangeLow)} - ${money(p.rangeHigh)}</p></div>
-      <div class="detail-card"><h3>Trade Plan</h3><ul>${Object.entries(plan.rules || {}).map(([k,v]) => `<li>${escapeHtml(v)}</li>`).join('')}</ul></div>
+      <div class="detail-card"><h3>Trade Plan</h3>
+        <ul class="pro-bullet-list trade-plan-color-list">
+          <li><span class="trade-label entry">จุดเข้า</span><strong class="trade-price entry">${money(plan.confirmationLevel || p.levels?.resistance)}</strong></li>
+          <li><span class="trade-label follow">จุด Follow</span><strong class="trade-price follow">${money(plan.followLevel || p.levels?.resistance)}</strong></li>
+          <li><span class="trade-label reduce">ลดความเสี่ยง</span><strong class="trade-price reduce">${money(plan.reduceRiskLevel || p.levels?.support)}</strong></li>
+          <li><span class="trade-label stop">Stop-loss</span><strong class="trade-price stop">${money(plan.stopLoss || p.levels?.stopLoss)}</strong></li>
+        </ul>
+        <ul>${Object.entries(plan.rules || {}).map(([k,v]) => `<li>${escapeHtml(v)}</li>`).join('')}</ul>
+      </div>
     </div><ol class="logic-list">${(p.reasoning || []).map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ol>`};
+  }
+  if (type === 'catalyst') {
+    const catalysts = buildCatalystEvents(data);
+    return { title:'Catalyst / ปฏิทินเหตุการณ์', html:`<div class="detail-card"><p>ระบบสรุป Catalyst จากข่าวล่าสุด, Decision Matrix, Social, Volume และปัจจัยเฉพาะสินทรัพย์ เพื่อใช้เป็นรายการที่ต้องตรวจต่อ ไม่ใช่ปฏิทินทางการแบบ real-time</p></div>
+      <div class="catalyst-list detail">${catalysts.map(catalystRow).join('')}</div>
+      <div class="detail-card"><h3>ควรตรวจเพิ่มจากแหล่งจริง</h3><ul>
+        <li>${data.assetType === 'crypto' ? 'Coinglass / CryptoQuant / Glassnode / ETF Flow / Funding Rate' : 'SEC EDGAR / Earnings Calendar / Nasdaq / Company IR'}</li>
+        <li>ตรวจข่าวล่าสุดก่อนตลาดเปิดหรือก่อนถือข้ามวัน</li>
+        <li>ถ้า Catalyst เป็นข่าวลือจาก Social ให้รอแหล่งข่าวยืนยันก่อน</li>
+      </ul></div>` };
   }
   if (type === 'matrix') {
     return { title:'Decision Matrix ทั้งหมด', html:`<div class="detail-grid">${(data.factors || []).map(f => `<div class="detail-card"><h3>${f.index}. ${escapeHtml(f.dimension)}</h3><p><strong>${escapeHtml(f.scoreText)} • ${escapeHtml(f.status)}</strong></p><p>${escapeHtml(f.explanation)}</p><p><strong>จับตา:</strong> ${escapeHtml(f.watch)}</p><p><strong>Action:</strong> ${escapeHtml(f.action)}</p></div>`).join('')}</div>`};
@@ -1084,12 +1450,26 @@ $('proTickerInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') a
 $('analyseBtn')?.addEventListener('click', analyze);
 $('tickerInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') analyze(); });
 document.addEventListener('click', (e) => {
-  const detail = e.target.closest('[data-detail]')?.getAttribute('data-detail');
+  const target = e.target.closest('[data-detail]');
+  const detail = target?.getAttribute('data-detail');
   if (detail) {
     e.preventDefault();
+    if (detail === 'watchlist') {
+      if (latestDashboardData) toggleWatchlist(latestDashboardData);
+      return;
+    }
+    if (detail === 'share') {
+      if (navigator.share && latestDashboardData) {
+        navigator.share({ title: `Stock AI Dashboard ${latestDashboardData.symbol}`, text: `${latestDashboardData.symbol}: ${latestDashboardData.prediction?.verdict || ''}`, url: location.href }).catch(() => {});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(location.href).then(() => showProToast('คัดลอกลิงก์แล้ว', 'positive')).catch(() => showProToast('คัดลอกลิงก์ไม่สำเร็จ', 'negative'));
+      }
+      return;
+    }
     openProDetail(detail);
   }
   if (e.target.closest('[data-close-detail]')) closeProDetail();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeProDetail(); });
+document.addEventListener('dblclick', (e) => { if (e.target.closest('[data-detail="watchlist"]')) openProDetail('watchlist-list'); });
 analyze();
