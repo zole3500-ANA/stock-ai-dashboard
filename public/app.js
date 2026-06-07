@@ -611,19 +611,20 @@ function summaryLabel(summary) {
 
 
 const WATCHLIST_KEY = 'stock-ai-dashboard-watchlist-v1';
+const WATCHLIST_LIMIT = 10;
 
 function readWatchlist() {
   try {
     const raw = localStorage.getItem(WATCHLIST_KEY);
     const rows = JSON.parse(raw || '[]');
-    return Array.isArray(rows) ? rows : [];
+    return Array.isArray(rows) ? rows.slice(0, WATCHLIST_LIMIT) : [];
   } catch {
     return [];
   }
 }
 
 function saveWatchlist(rows) {
-  localStorage.setItem(WATCHLIST_KEY, JSON.stringify(rows.slice(0, 100)));
+  localStorage.setItem(WATCHLIST_KEY, JSON.stringify((rows || []).slice(0, WATCHLIST_LIMIT)));
 }
 
 function watchlistKey(data) {
@@ -635,44 +636,81 @@ function isInWatchlist(data) {
   return readWatchlist().some(item => item.key === key);
 }
 
-function toggleWatchlist(data) {
-  if (!data?.symbol) return;
-  const key = watchlistKey(data);
+function watchlistItemFromData(data) {
+  return {
+    key: watchlistKey(data),
+    symbol: data.symbol,
+    assetType: data.assetType || 'stock',
+    assetLabel: data.assetLabel || (data.assetType === 'crypto' ? 'Bitcoin / Crypto' : 'หุ้น'),
+    market: data.market || '-',
+    company: data.profile?.company || '-',
+    score: data.profile?.score ?? null,
+    verdict: data.prediction?.verdict || '-',
+    lastPrice: data.prediction?.lastPrice ?? null,
+    updatedAt: new Date().toISOString()
+  };
+}
+
+function addCurrentToWatchlist(data) {
+  if (!data?.symbol) return { ok:false, reason:'no-data' };
   const current = readWatchlist();
+  const key = watchlistKey(data);
   const exists = current.some(item => item.key === key);
-  let next;
+
   if (exists) {
-    next = current.filter(item => item.key !== key);
-    showProToast(`นำ ${data.symbol} ออกจาก Watchlist แล้ว`, 'negative');
-  } else {
-    next = [
-      {
-        key,
-        symbol: data.symbol,
-        assetType: data.assetType || 'stock',
-        assetLabel: data.assetLabel || (data.assetType === 'crypto' ? 'Bitcoin / Crypto' : 'หุ้น'),
-        market: data.market || '-',
-        company: data.profile?.company || '-',
-        score: data.profile?.score ?? null,
-        verdict: data.prediction?.verdict || '-',
-        lastPrice: data.prediction?.lastPrice ?? null,
-        updatedAt: new Date().toISOString()
-      },
-      ...current
+    const next = [
+      watchlistItemFromData(data),
+      ...current.filter(item => item.key !== key)
     ];
-    showProToast(`เพิ่ม ${data.symbol} เข้า Watchlist แล้ว`, 'positive');
+    saveWatchlist(next);
+    updateWatchlistButton(data);
+    return { ok:true, action:'updated', count:next.length };
   }
+
+  if (current.length >= WATCHLIST_LIMIT) {
+    showProToast(`Watchlist เต็มแล้ว เก็บได้สูงสุด ${WATCHLIST_LIMIT} ตัว`, 'negative');
+    return { ok:false, reason:'limit' };
+  }
+
+  const next = [watchlistItemFromData(data), ...current];
   saveWatchlist(next);
   updateWatchlistButton(data);
+  showProToast(`เพิ่ม ${data.symbol} เข้า Watchlist แล้ว (${next.length}/${WATCHLIST_LIMIT})`, 'positive');
+  return { ok:true, action:'added', count:next.length };
+}
+
+function removeWatchlistItem(key) {
+  const current = readWatchlist();
+  const target = current.find(item => item.key === key);
+  const next = current.filter(item => item.key !== key);
+  saveWatchlist(next);
+  updateWatchlistButton(latestDashboardData);
+  if (target) showProToast(`ลบ ${target.symbol} ออกจาก Watchlist แล้ว`, 'negative');
+}
+
+function openWatchlistManager({ autoAdd = false } = {}) {
+  if (autoAdd && latestDashboardData && !isInWatchlist(latestDashboardData)) {
+    const result = addCurrentToWatchlist(latestDashboardData);
+    if (!result.ok && result.reason === 'limit') {
+      openProDetail('watchlist-list');
+      return;
+    }
+  } else if (autoAdd && latestDashboardData && isInWatchlist(latestDashboardData)) {
+    addCurrentToWatchlist(latestDashboardData);
+  }
+  openProDetail('watchlist-list');
 }
 
 function updateWatchlistButton(data) {
   const btn = document.querySelector('[data-detail="watchlist"]');
   if (!btn || !data) return;
+  const rows = readWatchlist();
   const active = isInWatchlist(data);
   btn.classList.toggle('watchlist-active', active);
-  btn.innerHTML = active ? '★ อยู่ใน WATCHLIST' : '⭐ WATCHLIST';
-  btn.title = active ? 'กดเพื่อนำออกจาก Watchlist' : 'กดเพื่อเพิ่มเข้า Watchlist';
+  btn.innerHTML = active ? `★ WATCHLIST ${rows.length}/${WATCHLIST_LIMIT}` : `⭐ WATCHLIST ${rows.length}/${WATCHLIST_LIMIT}`;
+  btn.title = active
+    ? 'กดเพื่อเปิด Watchlist และเลือกรายการที่บันทึกไว้'
+    : `กดเพื่อเพิ่มตัวนี้และเปิด Watchlist สูงสุด ${WATCHLIST_LIMIT} ตัว`;
 }
 
 function showProToast(message, tone = 'neutral') {
@@ -693,34 +731,84 @@ function showProToast(message, tone = 'neutral') {
 
 function watchlistDetailContent() {
   const rows = readWatchlist();
+  const currentSaved = latestDashboardData ? isInWatchlist(latestDashboardData) : false;
+  const currentSymbol = latestDashboardData?.symbol || '-';
+
   if (!rows.length) {
     return {
-      title: 'Watchlist',
-      html: `<div class="detail-card"><h3>ยังไม่มีรายการใน Watchlist</h3><p>กดปุ่ม ⭐ WATCHLIST บนสินทรัพย์ที่ต้องการติดตาม เพื่อบันทึกไว้ในเครื่องนี้</p></div>`
+      title: `Watchlist 0/${WATCHLIST_LIMIT}`,
+      html: `<div class="detail-card tone-neutral">
+        <h3>ยังไม่มีรายการใน Watchlist</h3>
+        <p>กดปุ่ม ⭐ WATCHLIST เพื่อบันทึกสินทรัพย์ปัจจุบัน เก็บได้สูงสุด ${WATCHLIST_LIMIT} ตัว</p>
+        ${latestDashboardData ? `<button class="watchlist-action-btn add" data-watchlist-add-current>เพิ่ม ${escapeHtml(currentSymbol)} ตอนนี้</button>` : ''}
+      </div>`
     };
   }
 
   return {
-    title: `Watchlist (${rows.length} รายการ)`,
-    html: `<div class="watchlist-detail-list">
+    title: `Watchlist ${rows.length}/${WATCHLIST_LIMIT}`,
+    html: `<div class="detail-card tone-neutral">
+      <h3>รายการที่บันทึกไว้</h3>
+      <p>แตะปุ่ม <strong>ดูตัวนี้</strong> เพื่อโหลดข้อมูลและวิเคราะห์ตัวนั้นทันที</p>
+      <div class="watchlist-toolbar">
+        ${latestDashboardData ? `<button class="watchlist-action-btn ${currentSaved ? 'saved' : 'add'}" data-watchlist-add-current>${currentSaved ? `อัปเดต ${escapeHtml(currentSymbol)} ใน Watchlist` : `เพิ่ม ${escapeHtml(currentSymbol)} (${rows.length}/${WATCHLIST_LIMIT})`}</button>` : ''}
+        <span>สูงสุด ${WATCHLIST_LIMIT} ตัว</span>
+      </div>
+    </div>
+    <div class="watchlist-detail-list">
       ${rows.map(item => {
         const tone = scoreTone(Number(item.score || 0));
-        return `<div class="watchlist-item tone-${tone}">
+        return `<div class="watchlist-item tone-${tone}" data-watchlist-key="${escapeHtml(item.key)}">
           <div>
             <h3>${escapeHtml(item.symbol)} <span>${escapeHtml(item.assetLabel || '')}</span></h3>
             <p>${escapeHtml(item.company || '-')}</p>
-            <small>${escapeHtml(item.market || '-')} • เพิ่มเมื่อ ${formatDateTimeShort(item.updatedAt)}</small>
+            <small>${escapeHtml(item.market || '-')} • อัปเดต ${formatDateTimeShort(item.updatedAt)}</small>
           </div>
           <div class="watchlist-meta">
             <strong>${item.score ?? '-'}/100</strong>
             <span>${escapeHtml(item.verdict || '-')}</span>
             <span>${item.lastPrice != null ? money(item.lastPrice) : '-'}</span>
           </div>
+          <div class="watchlist-actions">
+            <button type="button" class="watchlist-action-btn open" data-watchlist-open="${escapeHtml(item.key)}">ดูตัวนี้</button>
+            <button type="button" class="watchlist-action-btn remove" data-watchlist-remove="${escapeHtml(item.key)}">ลบ</button>
+          </div>
         </div>`;
       }).join('')}
     </div>
-    <div class="detail-card"><p>หมายเหตุ: Watchlist นี้เก็บด้วย localStorage ในเครื่อง/เบราว์เซอร์ที่ใช้อยู่ หากเปิดคนละเครื่องหรือเคลียร์ cache รายการอาจหายได้</p></div>`
+    <div class="detail-card tone-neutral"><p>หมายเหตุ: Watchlist นี้เก็บด้วย localStorage ในเครื่อง/เบราว์เซอร์ที่ใช้อยู่ หากเปลี่ยนเครื่องหรือเคลียร์ cache รายการอาจหายได้</p></div>`
   };
+}
+
+function loadWatchlistItem(key) {
+  const item = readWatchlist().find(row => row.key === key);
+  if (!item) {
+    showProToast('ไม่พบรายการนี้ใน Watchlist', 'negative');
+    return;
+  }
+
+  closeProDetail();
+
+  if ($('proAssetTypeSelect')) $('proAssetTypeSelect').value = item.assetType || 'stock';
+  if ($('assetTypeSelect')) $('assetTypeSelect').value = item.assetType || 'stock';
+  if ($('proTickerInput')) $('proTickerInput').value = item.symbol || '';
+  if ($('tickerInput')) $('tickerInput').value = item.symbol || '';
+  if ($('proMarketSelect')) $('proMarketSelect').value = item.market || (item.assetType === 'crypto' ? 'CRYPTO' : 'AMEX');
+  if ($('marketSelect')) $('marketSelect').value = item.market || (item.assetType === 'crypto' ? 'CRYPTO' : 'AMEX');
+
+  applyAssetTypeUi();
+  if ($('proTickerInput')) $('proTickerInput').value = item.symbol || '';
+  if ($('tickerInput')) $('tickerInput').value = item.symbol || '';
+
+  showProToast(`กำลังโหลด ${item.symbol} จาก Watchlist...`, 'positive');
+  analyze();
+}
+
+function refreshWatchlistModal() {
+  const modal = $('proDetailModal');
+  if (modal?.classList.contains('open')) {
+    openProDetail('watchlist-list');
+  }
 }
 
 function formatDateTimeShort(value) {
@@ -729,7 +817,6 @@ function formatDateTimeShort(value) {
   if (Number.isNaN(d.getTime())) return '-';
   return d.toLocaleString('th-TH', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
 }
-
 
 
 
@@ -1044,11 +1131,34 @@ function catalystRow(event) {
 }
 
 
+
+function newsTimestamp(item = {}) {
+  const candidates = [item.publishedAt, item.date, item.datetime, item.createdAt].filter(Boolean);
+  for (const value of candidates) {
+    const t = new Date(value).getTime();
+    if (Number.isFinite(t)) return t;
+  }
+  return 0;
+}
+
+function sortNewsByDate(news = []) {
+  return [...(news || [])].sort((a, b) => newsTimestamp(b) - newsTimestamp(a));
+}
+
+function newsDateLabel(item = {}) {
+  const t = newsTimestamp(item);
+  if (!t) return 'ไม่ทราบวันที่';
+  const d = new Date(t);
+  return d.toLocaleDateString('th-TH', { day:'2-digit', month:'short', year:'2-digit' });
+}
+
+
 function renderProBottom(data) {
   const p = data.prediction || {};
   const plan = p.tradePlan || {};
   const smart = data.smartMoney || {};
   const news = data.news || [];
+  const sortedNews = sortNewsByDate(news);
   const social = data.social?.summary || {};
   const tradeTone = proToneByChange(p.predictedReturn ?? p.technical?.dayChange ?? 0);
   setHtml('proTradePlan', `
@@ -1068,9 +1178,9 @@ function renderProBottom(data) {
     </div>`);
   setHtml('proNewsSummary', `
     <div class="colored-insight-block news-color-list">
-      ${news.slice(0,4).map(n => {
+      ${sortedNews.slice(0,4).map(n => {
         const tone = newsTone(n);
-        return coloredInsightRow(`${formatDateShort(n.publishedAt)} • ${insightToneLabel(tone)}`, n.titleTh || n.title || '-', tone, n.source || '');
+        return coloredInsightRow(`${newsDateLabel(n)} • ${insightToneLabel(tone)}`, n.titleTh || n.title || '-', tone, n.source || '');
       }).join('') || coloredInsightRow('ข่าว', 'ยังไม่มีข่าว', 'neutral')}
     </div>`);
   const socialTone = insightToneFromText(`${social.thaiSummary || ''} ${social.dominantTone || ''}`, 50 + Number(social.sentimentScore || 0) * 50);
@@ -1082,7 +1192,7 @@ function renderProBottom(data) {
       ${coloredInsightRow('Hype Risk', `${social.hypeRisk || 0}/100`, Number(social.hypeRisk || 0) >= 65 ? 'negative' : Number(social.hypeRisk || 0) <= 35 ? 'positive' : 'neutral')}
     </div>`);
   const catalysts = buildCatalystEvents(data);
-  const newsAggregateTone = aggregateTone(news.slice(0,4).map(newsTone));
+  const newsAggregateTone = aggregateTone(sortedNews.slice(0,4).map(newsTone));
   const catalystTone = aggregateTone(catalysts.map(x => x.tone));
   setHtml('proCatalystSummary', `
     <div class="catalyst-list compact">
@@ -1172,10 +1282,11 @@ function buildDetailContent(type, data) {
     }).join('')}</div>`};
   }
   if (type === 'news') {
-    return { title:'ข่าวสำคัญทั้งหมด', html:`<div class="detail-list">${(data.news || []).map(n => {
+    const sortedNews = sortNewsByDate(data.news || []);
+    return { title:'ข่าวสำคัญทั้งหมด', html:`<div class="detail-list sorted-news-list">${sortedNews.map(n => {
       const tone = newsTone(n);
-      return `<a class="detail-news colored-detail ${tone}" href="${escapeHtml(n.url)}" target="_blank" rel="noopener"><strong>${escapeHtml(n.titleTh || n.title || '-')}</strong><span>${escapeHtml(n.source || '')} • ${formatDateShort(n.publishedAt)} • ${escapeHtml(n.sentimentLabelTh || insightToneLabel(tone))}</span><p>${escapeHtml(n.snippetTh || n.snippet || '')}</p></a>`;
-    }).join('')}</div>` };
+      return `<a class="detail-news colored-detail ${tone}" href="${escapeHtml(n.url)}" target="_blank" rel="noopener"><strong>${escapeHtml(n.titleTh || n.title || '-')}</strong><span>${newsDateLabel(n)} • ${escapeHtml(n.source || '')} • ${escapeHtml(n.sentimentLabelTh || insightToneLabel(tone))}</span><p>${escapeHtml(n.snippetTh || n.snippet || '')}</p></a>`;
+    }).join('') || '<div class="detail-card tone-neutral"><p>ยังไม่มีข่าวที่ดึงได้</p></div>'}</div>` };
   }
   if (type === 'trade' || type === 'prediction' || type === 'price') {
     const p = data.prediction || {};
@@ -1489,12 +1600,34 @@ $('proTickerInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') a
 $('analyseBtn')?.addEventListener('click', analyze);
 $('tickerInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') analyze(); });
 document.addEventListener('click', (e) => {
+  const openKey = e.target.closest('[data-watchlist-open]')?.getAttribute('data-watchlist-open');
+  if (openKey) {
+    e.preventDefault();
+    loadWatchlistItem(openKey);
+    return;
+  }
+
+  const removeKey = e.target.closest('[data-watchlist-remove]')?.getAttribute('data-watchlist-remove');
+  if (removeKey) {
+    e.preventDefault();
+    removeWatchlistItem(removeKey);
+    refreshWatchlistModal();
+    return;
+  }
+
+  if (e.target.closest('[data-watchlist-add-current]')) {
+    e.preventDefault();
+    addCurrentToWatchlist(latestDashboardData);
+    refreshWatchlistModal();
+    return;
+  }
+
   const target = e.target.closest('[data-detail]');
   const detail = target?.getAttribute('data-detail');
   if (detail) {
     e.preventDefault();
     if (detail === 'watchlist') {
-      if (latestDashboardData) toggleWatchlist(latestDashboardData);
+      openWatchlistManager({ autoAdd: true });
       return;
     }
     if (detail === 'share') {
@@ -1510,5 +1643,4 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('[data-close-detail]')) closeProDetail();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeProDetail(); });
-document.addEventListener('dblclick', (e) => { if (e.target.closest('[data-detail="watchlist"]')) openProDetail('watchlist-list'); });
 analyze();

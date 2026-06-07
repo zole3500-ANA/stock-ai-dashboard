@@ -3005,3 +3005,90 @@ body{
     width:4px;
   }
 }
+
+/* v2.2.8 Sorted Thai News */
+.sorted-news-list .detail-news span{
+  font-weight:900;
+}
+.news-color-list .colored-insight-row .insight-label{
+  white-space:nowrap;
+}
+@media(max-width:820px){
+  .news-color-list .colored-insight-row .insight-label{
+    white-space:normal;
+  }
+}
+
+/* v2.2.9 Watchlist Manager */
+.watchlist-toolbar{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px;
+  margin-top:10px;
+}
+.watchlist-toolbar span{
+  color:#9fb2ca;
+  font-weight:900;
+}
+.watchlist-item{
+  grid-template-columns:minmax(0,1fr) 150px 168px;
+  align-items:center;
+}
+.watchlist-actions{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:7px;
+}
+.watchlist-action-btn{
+  border:1px solid rgba(168,121,255,.36);
+  background:rgba(168,121,255,.10);
+  color:#f3eaff;
+  border-radius:12px;
+  min-height:38px;
+  padding:8px 10px;
+  font-weight:950;
+  cursor:pointer;
+}
+.watchlist-action-btn.open{
+  border-color:rgba(53,208,127,.34);
+  background:rgba(53,208,127,.10);
+  color:#b8ffd2;
+}
+.watchlist-action-btn.remove{
+  border-color:rgba(255,82,99,.34);
+  background:rgba(255,82,99,.10);
+  color:#ffc2c8;
+}
+.watchlist-action-btn.add,
+.watchlist-action-btn.saved{
+  border-color:rgba(255,200,87,.34);
+  background:rgba(255,200,87,.10);
+  color:#ffe6a8;
+}
+.watchlist-action-btn:hover{
+  transform:translateY(-1px);
+  filter:brightness(1.08);
+}
+.pro-icon-btn.watchlist-active{
+  background:linear-gradient(135deg, rgba(255,200,87,.24), rgba(255,200,87,.12));
+  border-color:rgba(255,200,87,.55);
+  color:#ffe6a8;
+}
+@media(max-width:820px){
+  .watchlist-item{
+    grid-template-columns:1fr;
+  }
+  .watchlist-actions{
+    grid-template-columns:1fr 1fr;
+  }
+  .watchlist-action-btn{
+    min-height:44px;
+    font-size:.98rem;
+  }
+}
+@media(max-width:420px){
+  .watchlist-actions{
+    grid-template-columns:1fr;
+  }
+}

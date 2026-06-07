@@ -1,7 +1,7 @@
 {
   "name": "stock-ai-dashboard",
-  "version": "2.2.7",
-  "description": "Pixel Agents Pro dashboard with semantic green/yellow/red color cues across clickable bottom cards and all detail modals.",
+  "version": "2.2.9",
+  "description": "Pixel Agents Pro dashboard with 10-item Watchlist manager and one-click load/analyze saved assets.",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -80,7 +80,13 @@
     "price-card-colors",
     "semantic-colors",
     "full-semantic-colors",
-    "colored-modals"
+    "colored-modals",
+    "sorted-news",
+    "thai-news-date-order",
+    "news-date-sort",
+    "watchlist-manager",
+    "watchlist-10",
+    "load-watchlist-asset"
   ],
   "author": "zole3500-ANA + ChatGPT",
   "license": "MIT"
