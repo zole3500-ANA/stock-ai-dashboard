@@ -1045,3 +1045,396 @@ body.asset-crypto .logo::after{
     grid-template-columns:1fr;
   }
 }
+
+/* v2.1.2 Android LINE Mobile Readability */
+html{
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+body{
+  text-rendering:optimizeLegibility;
+}
+.line-mobile-note{
+  position:relative;
+  z-index:1;
+  margin-top:10px;
+  padding:10px 14px;
+  border-radius:16px;
+  border:1px solid rgba(255,200,87,.24);
+  background:rgba(255,200,87,.08);
+  color:#ffe6aa;
+  font-weight:800;
+  font-size:.92rem;
+  line-height:1.55;
+  overflow-wrap:anywhere;
+}
+
+@media(max-width:760px){
+  body{
+    font-size:16px;
+    line-height:1.72;
+    background:#07101d;
+  }
+  .dashboard-shell{
+    width:100%;
+    padding:72px 10px 28px;
+    box-sizing:border-box;
+  }
+  .content-area{
+    display:grid;
+    gap:14px;
+  }
+  .hero,
+  .panel,
+  .pixel-room-section{
+    padding:16px;
+    border-radius:22px;
+    box-shadow:0 10px 28px rgba(0,0,0,.22);
+  }
+  .brand{
+    gap:12px;
+  }
+  .logo{
+    width:46px;
+    height:46px;
+    min-width:46px;
+  }
+  h1{
+    font-size:1.35rem;
+    line-height:1.28;
+  }
+  .subtitle{
+    font-size:1rem;
+    line-height:1.65;
+    color:#c8d5e5;
+  }
+  .version-notice,
+  .line-mobile-note,
+  .disclaimer,
+  .thesis,
+  .pixel-task,
+  .pixel-bubble,
+  .news-snippet,
+  .news-original,
+  .small{
+    font-size:1rem;
+    line-height:1.7;
+  }
+  .control{
+    grid-template-columns:1fr!important;
+    gap:10px;
+    margin-top:14px;
+  }
+  input,
+  select,
+  button{
+    min-height:50px;
+    font-size:16px!important;
+    border-radius:16px!important;
+  }
+  #analyseBtn{
+    min-height:54px;
+    font-size:1.02rem!important;
+    font-weight:900;
+  }
+  .cards{
+    grid-template-columns:1fr!important;
+    gap:10px;
+  }
+  .card,
+  .prediction-card,
+  .level,
+  .smart-summary-card,
+  .social-summary-card,
+  .quick-card{
+    padding:14px;
+    border-radius:18px;
+  }
+  .label{
+    font-size:.88rem;
+    letter-spacing:.02em;
+  }
+  .big{
+    font-size:clamp(1.35rem,7vw,2rem);
+    line-height:1.18;
+  }
+  .badge{
+    font-size:.9rem;
+    padding:7px 10px;
+    border-radius:999px;
+  }
+  .panel-title{
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .panel-title h2{
+    font-size:1.18rem;
+    line-height:1.35;
+  }
+  .chartbox{
+    height:330px!important;
+    border-radius:18px;
+  }
+  .score,
+  .levels,
+  .prediction-main,
+  .scenario,
+  .smart-summary-grid,
+  .social-summary-grid,
+  .social-risk-grid,
+  .smart-grid,
+  .social-platform-grid,
+  .agents-grid{
+    grid-template-columns:1fr!important;
+    gap:10px;
+  }
+  .dial{
+    width:120px;
+    height:120px;
+    margin:auto;
+  }
+  .dial:before{
+    width:94px;
+    height:94px;
+  }
+  .dial span{
+    font-size:1.9rem;
+  }
+  .pixel-room-section::before{
+    opacity:.22;
+  }
+  .pixel-room-grid{
+    grid-template-columns:1fr!important;
+    gap:12px;
+  }
+  .pixel-station,
+  .pixel-roster,
+  .pixel-timeline-wrap,
+  .agent-card,
+  .news-item,
+  .social-platform-card,
+  .social-box,
+  .smart-card{
+    padding:14px;
+    border-radius:18px;
+  }
+  .pixel-station-title,
+  .pixel-roster-name,
+  .news-title,
+  .agent-card h3{
+    font-size:1.05rem;
+    line-height:1.45;
+  }
+  .pixel-metrics,
+  .social-metrics,
+  .tool-links{
+    gap:6px;
+  }
+  .pixel-metrics span,
+  .social-metrics span,
+  .tool-links a{
+    font-size:.88rem;
+    padding:7px 9px;
+  }
+  .pixel-timeline{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    overflow:visible!important;
+    gap:8px;
+    padding-bottom:0;
+  }
+  .pixel-step{
+    min-width:0!important;
+    padding:12px;
+  }
+  .pixel-roster-list{
+    grid-template-columns:1fr!important;
+  }
+  .pixel-roster-card{
+    grid-template-columns:54px minmax(0,1fr);
+    gap:10px;
+    padding:12px;
+  }
+  .pixel-roster-card .pixel-avatar-wrap{
+    width:50px;
+    height:50px;
+  }
+  .agent-head{
+    grid-template-columns:1fr!important;
+  }
+  .agent-profile{
+    display:grid;
+    grid-template-columns:56px minmax(0,1fr);
+    gap:10px;
+  }
+  .agent-score{
+    justify-self:start;
+    min-width:92px;
+  }
+  .agent-section{
+    margin-top:12px;
+  }
+  .agent-section h4{
+    font-size:1rem;
+    line-height:1.45;
+  }
+  .agent-section ul,
+  .logic-list,
+  .social-mentions,
+  .social-box ul{
+    padding-left:18px;
+  }
+  .agent-section li,
+  .logic-list li,
+  .social-mentions li,
+  .social-box li{
+    margin-bottom:10px;
+    line-height:1.7;
+  }
+  .bar-row{
+    grid-template-columns:1fr!important;
+    gap:6px;
+    padding:10px 0;
+    border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .bar-label{
+    font-size:.98rem;
+  }
+  .news-head,
+  .social-platform-head{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  .social-score{
+    min-width:0;
+    width:100%;
+    box-sizing:border-box;
+  }
+  .sidebar{
+    width:min(360px, calc(100vw - 18px));
+    top:8px;
+    left:9px;
+    max-height:calc(100dvh - 18px);
+    border-radius:24px;
+  }
+  .mobile-menu-toggle{
+    left:10px;
+    top:10px;
+    width:48px;
+    height:48px;
+  }
+  .scroll-top{
+    width:46px;
+    height:46px;
+    border-radius:16px;
+  }
+}
+
+/* Decision Matrix becomes readable cards in Android/LINE */
+@media(max-width:720px){
+  .table-scroll{
+    overflow:visible!important;
+  }
+  .decision-table{
+    min-width:0!important;
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+  }
+  .decision-table thead{
+    display:none;
+  }
+  .decision-table tbody,
+  .decision-table tr,
+  .decision-table td{
+    display:block;
+    width:100%!important;
+    min-width:0!important;
+    box-sizing:border-box;
+  }
+  .decision-table tr{
+    margin:0 0 14px;
+    padding:12px;
+    border:1px solid rgba(255,255,255,.09);
+    border-radius:18px;
+    background:rgba(255,255,255,.045);
+    box-shadow:0 8px 24px rgba(0,0,0,.16);
+  }
+  .decision-table td{
+    display:grid;
+    grid-template-columns:112px minmax(0,1fr);
+    gap:10px;
+    align-items:start;
+    padding:8px 0;
+    border:0!important;
+    font-size:.98rem!important;
+    line-height:1.65!important;
+    text-align:left!important;
+  }
+  .decision-table td + td{
+    border-top:1px solid rgba(255,255,255,.06)!important;
+  }
+  .decision-table td::before{
+    color:#93a8bf;
+    font-weight:900;
+    font-size:.86rem;
+    line-height:1.5;
+  }
+  .decision-table td:nth-child(1)::before{content:"#";}
+  .decision-table td:nth-child(2)::before{content:"มิติ";}
+  .decision-table td:nth-child(3)::before{content:"คะแนน";}
+  .decision-table td:nth-child(4)::before{content:"สถานะ";}
+  .decision-table td:nth-child(5)::before{content:"น้ำหนัก";}
+  .decision-table td:nth-child(6)::before{content:"มั่นใจ";}
+  .decision-table td:nth-child(7)::before{content:"ผลต่อราคา";}
+  .decision-table td:nth-child(8)::before{content:"ระยะเวลา";}
+  .decision-table td:nth-child(9)::before{content:"สรุป";}
+  .decision-table td:nth-child(10)::before{content:"จับตา";}
+  .decision-table td:nth-child(11)::before{content:"Action";}
+  .decision-table td:nth-child(2) strong{
+    font-size:1.04rem;
+    color:#f3f8ff;
+  }
+  .status-symbol{
+    width:38px;
+    height:38px;
+    border-radius:14px;
+  }
+  .factor-score{
+    min-width:0;
+    width:max-content;
+    max-width:100%;
+  }
+  .status-legend{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+  }
+  .status-legend span{
+    font-size:.84rem;
+    line-height:1.45;
+    padding:8px 10px;
+    justify-content:flex-start;
+  }
+}
+
+@media(max-width:390px){
+  .dashboard-shell{
+    padding-left:7px;
+    padding-right:7px;
+  }
+  .hero,
+  .panel,
+  .pixel-room-section{
+    padding:13px;
+    border-radius:20px;
+  }
+  .decision-table td{
+    grid-template-columns:94px minmax(0,1fr);
+    gap:8px;
+  }
+  .status-legend{
+    grid-template-columns:1fr;
+  }
+}

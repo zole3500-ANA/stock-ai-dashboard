@@ -383,6 +383,22 @@ DOGE-USD
 3. ทีมปฏิบัติการ
 
 
+
+## อัปเดต v2.1.2: ปรับการแสดงผลบนมือถือ Android / LINE
+
+เวอร์ชันนี้ปรับ UI สำหรับการอ่านผ่านมือถือ Android โดยเฉพาะกรณีเปิดผ่าน LINE browser / LINE WebView:
+
+- เพิ่มขนาดตัวอักษรและ line-height ให้อ่านง่ายขึ้น
+- ปรับ input/select/button เป็น 16px ขึ้นไป เพื่อลดปัญหา Android zoom เอง
+- ปรับ spacing ของ card/panel ให้โปร่งขึ้น
+- ลดความแน่นของ Pixel Agent Command Room
+- ปรับ timeline ให้เป็นรายการแนวตั้งบนมือถือ ไม่ต้องลากซ้ายขวา
+- ปรับข่าว Social Agent Smart Money และ Prediction ให้เป็น single-column อ่านง่าย
+- แปลงตาราง Decision Matrix บนมือถือจากตารางแนวนอนเป็น **การ์ดรายมิติ** เพื่ออ่านผ่าน LINE ได้สะดวกขึ้น
+- เพิ่มป้ายแจ้งโหมดอ่านบนมือถือในหน้า Overview
+- เพิ่ม cache busting เป็น `?v=2.1.2`
+
+
 ## วิธีรันในเครื่อง
 
 ```bash
